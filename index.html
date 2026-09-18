@@ -9,158 +9,185 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
 
 body{
-margin:0;
-background:#111;
-color:#fff;
-font-family:Arial,sans-serif;
-text-align:center;
+  margin:0;
+  background:#111;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  text-align:center;
 }
 
 main{
-max-width:900px;
-margin:auto;
-padding:12px;
+  width:100%;
+  max-width:900px;
+  margin:auto;
+  padding:12px;
 }
 
 h1{
-font-size:23px;
-margin:8px 0;
+  font-size:23px;
+  margin:8px 0;
 }
 
 p{
-margin:6px;
-color:#ccc;
+  color:#ccc;
+  margin:6px;
 }
 
 button{
-border:0;
-border-radius:9px;
-padding:12px 16px;
-margin:5px;
-background:#e53935;
-color:white;
-font-weight:bold;
-font-size:14px;
+  border:0;
+  border-radius:9px;
+  padding:12px 16px;
+  margin:5px;
+  background:#e53935;
+  color:#fff;
+  font-weight:bold;
+  font-size:14px;
 }
 
 button:active{
-transform:scale(.96);
+  transform:scale(.96);
 }
 
 input{
-width:150px;
-padding:12px;
-border:0;
-border-radius:9px;
-font-size:16px;
-text-align:center;
-text-transform:uppercase;
+  width:150px;
+  padding:12px;
+  border:0;
+  border-radius:9px;
+  font-size:16px;
+  text-align:center;
+  text-transform:uppercase;
 }
 
 #status{
-margin:12px 0;
-color:#8cff8c;
-font-size:14px;
+  margin:12px 0;
+  color:#8cff8c;
+  font-size:14px;
 }
 
 #roomInfo{
-margin:10px;
-font-size:17px;
-}
-
-.hidden{
-display:none!important;
-}
-
-/* DUA KAMERA SELALU BERDAMPINGAN */
-
-.cameras{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:7px;
-width:100%;
-}
-
-.camera{
-position:relative;
-width:100%;
-aspect-ratio:9/16;
-background:#222;
-border-radius:10px;
-overflow:hidden;
-}
-
-.camera video{
-width:100%;
-height:100%;
-object-fit:cover;
-}
-
-.label{
-position:absolute;
-top:7px;
-left:7px;
-background:#000c;
-padding:5px 8px;
-border-radius:6px;
-font-size:12px;
-}
-
-#hasil{
-display:block;
-width:100%;
-max-width:540px;
-margin:15px auto;
-border-radius:10px;
-}
-
-#download{
-display:inline-block;
-background:#16a34a;
-color:white;
-padding:12px 18px;
-border-radius:9px;
-text-decoration:none;
-font-weight:bold;
-}
-
-#countdown{
-position:fixed;
-inset:0;
-background:#000c;
-z-index:999;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:100px;
-font-weight:bold;
+  margin:10px;
+  font-size:17px;
 }
 
 #copyRoom{
-background:#444;
+  background:#444;
 }
+
+/* =========================
+   DUA KAMERA
+========================= */
+
+.cameras{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  width:100%;
+}
+
+.camera{
+  position:relative;
+  width:100%;
+  aspect-ratio:9/16;
+  background:#000;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+/*
+  contain = TIDAK ZOOM
+  seluruh gambar kamera terlihat
+*/
+
+.camera video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+.label{
+  position:absolute;
+  top:7px;
+  left:7px;
+  background:#000c;
+  padding:5px 8px;
+  border-radius:6px;
+  font-size:12px;
+  z-index:2;
+}
+
+.hidden{
+  display:none!important;
+}
+
+
+/* =========================
+   HASIL FOTO
+========================= */
+
+#hasil{
+  display:block;
+  width:100%;
+  max-width:540px;
+  margin:15px auto;
+  border-radius:10px;
+}
+
+#download{
+  display:inline-block;
+  background:#16a34a;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:9px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+
+/* =========================
+   COUNTDOWN
+========================= */
+
+#countdown{
+  position:fixed;
+  inset:0;
+  background:#000c;
+  z-index:999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:100px;
+  font-weight:bold;
+}
+
+
+/* =========================
+   HP
+========================= */
 
 @media(max-width:500px){
 
-main{
-padding:8px;
-}
+  main{
+    padding:8px;
+  }
 
-h1{
-font-size:20px;
-}
+  h1{
+    font-size:20px;
+  }
 
-button{
-font-size:13px;
-padding:10px 12px;
-}
+  button{
+    font-size:13px;
+    padding:10px 12px;
+  }
 
-input{
-width:130px;
-}
+  input{
+    width:130px;
+  }
 
 }
 </style>
@@ -176,26 +203,26 @@ width:130px;
 
 
 <!-- =========================
-     PILIH ROOM
+     SETUP ROOM
 ========================= -->
 
 <div id="setup">
 
-<button id="buatBtn">
-BUAT ROOM
-</button>
+  <button id="buatBtn">
+    BUAT ROOM
+  </button>
 
-<br>
+  <br>
 
-<input
-id="kodeInput"
-maxlength="6"
-placeholder="KODE ROOM"
->
+  <input
+    id="kodeInput"
+    maxlength="6"
+    placeholder="KODE ROOM"
+  >
 
-<button id="gabungBtn">
-GABUNG
-</button>
+  <button id="gabungBtn">
+    GABUNG
+  </button>
 
 </div>
 
@@ -207,15 +234,15 @@ GABUNG
 <div id="roomInfo"></div>
 
 <button
-id="copyRoom"
-class="hidden"
+  id="copyRoom"
+  class="hidden"
 >
-SALIN KODE
+  SALIN KODE
 </button>
 
 
 <div id="status">
-Belum terhubung
+  Belum terhubung
 </div>
 
 
@@ -224,77 +251,85 @@ Belum terhubung
 ========================= -->
 
 <div
-id="cameras"
-class="cameras hidden"
+  id="cameras"
+  class="cameras hidden"
 >
 
-<div class="camera">
+  <div class="camera">
 
-<video
-id="localVideo"
-autoplay
-playsinline
-muted
-></video>
+    <video
+      id="localVideo"
+      autoplay
+      playsinline
+      muted
+    ></video>
 
-<div class="label">
-KAMU
-</div>
+    <div class="label">
+      KAMU
+    </div>
 
-</div>
+  </div>
 
 
-<div class="camera">
+  <div class="camera">
 
-<video
-id="remoteVideo"
-autoplay
-playsinline
-></video>
+    <video
+      id="remoteVideo"
+      autoplay
+      playsinline
+    ></video>
 
-<div class="label">
-PASANGAN / TEMAN
-</div>
+    <div class="label">
+      PASANGAN / TEMAN
+    </div>
 
-</div>
+  </div>
 
 </div>
 
 
 <!-- =========================
-     FOTO
+     FOTO BERSAMA
 ========================= -->
 
 <button
-id="fotoBtn"
-class="hidden"
+  id="fotoBtn"
+  class="hidden"
 >
-📸 FOTO BERSAMA
+  📸 FOTO BERSAMA
 </button>
 
 
+<!-- =========================
+     HASIL
+========================= -->
+
 <canvas
-id="hasil"
-class="hidden"
+  id="hasil"
+  class="hidden"
 ></canvas>
 
 
 <a
-id="download"
-class="hidden"
-download="mini-ldr-studio.jpg"
+  id="download"
+  class="hidden"
+  download="mini-ldr-studio.jpg"
 >
-💾 SIMPAN FOTO
+  💾 SIMPAN FOTO
 </a>
 
 </main>
 
 
+<!-- =========================
+     COUNTDOWN
+========================= -->
+
 <div
-id="countdown"
-class="hidden"
+  id="countdown"
+  class="hidden"
 >
-3
+  3
 </div>
 
 
@@ -313,8 +348,8 @@ const SUPABASE_KEY =
 
 const supabaseClient =
 supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+  SUPABASE_URL,
+  SUPABASE_KEY
 );
 
 
@@ -374,29 +409,27 @@ document.getElementById("download");
 
 
 /* ==================================================
-   BUAT KODE 6 KARAKTER
+   BUAT KODE ROOM
 ================================================== */
 
 function buatKode(){
 
-const chars =
-"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const chars =
+  "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-let kode = "";
+  let kode = "";
 
-for(let i=0;i<6;i++){
+  for(let i=0;i<6;i++){
 
-kode +=
-chars[
-Math.floor(
-Math.random()*chars.length
-)
-];
+    kode += chars[
+      Math.floor(
+        Math.random()*chars.length
+      )
+    ];
 
-}
+  }
 
-return kode;
-
+  return kode;
 }
 
 
@@ -409,11 +442,11 @@ document
 .onclick =
 async function(){
 
-role = "host";
+  role = "host";
 
-roomCode = buatKode();
+  roomCode = buatKode();
 
-await masukRoom();
+  await masukRoom();
 
 };
 
@@ -427,30 +460,29 @@ document
 .onclick =
 async function(){
 
-const value =
-document
-.getElementById("kodeInput")
-.value
-.trim()
-.toUpperCase();
+  const value =
+  document
+  .getElementById("kodeInput")
+  .value
+  .trim()
+  .toUpperCase();
 
 
-if(value.length !== 6){
+  if(value.length !== 6){
 
-alert(
-"Kode room harus 6 karakter."
-);
+    alert(
+      "Kode room harus 6 karakter."
+    );
 
-return;
+    return;
+  }
 
-}
 
+  role = "guest";
 
-role = "guest";
+  roomCode = value;
 
-roomCode = value;
-
-await masukRoom();
+  await masukRoom();
 
 };
 
@@ -461,188 +493,199 @@ await masukRoom();
 
 async function masukRoom(){
 
-setup.classList.add("hidden");
+  setup.classList.add(
+    "hidden"
+  );
 
 
-roomInfo.innerHTML =
-"ROOM: <b>"+roomCode+"</b>";
+  roomInfo.innerHTML =
+  "ROOM: <b>"+roomCode+"</b>";
 
 
-copyRoom.classList.remove(
-"hidden"
-);
+  copyRoom.classList.remove(
+    "hidden"
+  );
 
 
-status.innerText =
-"Meminta izin kamera...";
+  status.innerText =
+  "Meminta izin kamera...";
 
 
-/* =========================
-   KAMERA
-========================= */
+  /* =========================
+     AKSES KAMERA
+  ========================= */
 
-try{
+  try{
 
-localStream =
-await navigator.mediaDevices
-.getUserMedia({
+    localStream =
+    await navigator
+    .mediaDevices
+    .getUserMedia({
 
-video:{
-facingMode:"user",
-width:{ideal:720},
-height:{ideal:1280}
-},
+      video:{
+        facingMode:"user",
+        width:{
+          ideal:720
+        },
+        height:{
+          ideal:1280
+        }
+      },
 
-audio:false
+      audio:false
 
-});
+    });
 
 
-localVideo.srcObject =
-localStream;
+    localVideo.srcObject =
+    localStream;
 
 
-}catch(error){
+  }catch(error){
 
-console.error(error);
+    console.error(error);
 
-status.innerText =
-"❌ Kamera gagal.";
+    status.innerText =
+    "❌ Kamera gagal.";
 
-alert(
-"Izin kamera diperlukan. Pastikan website dibuka melalui HTTPS."
-);
+    alert(
+      "Izin kamera diperlukan. Pastikan website dibuka melalui HTTPS."
+    );
 
-return;
+    return;
 
-}
+  }
 
 
-cameras.classList.remove(
-"hidden"
-);
+  cameras.classList.remove(
+    "hidden"
+  );
 
 
-/* =========================
-   WEBRTC
-========================= */
+  /* =========================
+     WEBRTC
+  ========================= */
 
-buatPeer();
+  buatPeer();
 
 
-/* =========================
-   SUPABASE CHANNEL
-========================= */
+  /* =========================
+     SUPABASE CHANNEL
+  ========================= */
 
-channel =
-supabaseClient.channel(
-"mini-ldr-room-"+roomCode,
-{
-config:{
-broadcast:{
-self:false
-}
-}
-});
+  channel =
+  supabaseClient.channel(
+    "mini-ldr-room-"+roomCode,
+    {
+      config:{
+        broadcast:{
+          self:false
+        }
+      }
+    }
+  );
 
 
-channel.on(
-"broadcast",
-{
-event:"signal"
-},
-async function(message){
+  channel.on(
+    "broadcast",
+    {
+      event:"signal"
+    },
+    async function(message){
 
-const data =
-message.payload;
+      const data =
+      message.payload;
 
-console.log(
-"Signal diterima:",
-data
-);
+      console.log(
+        "Signal diterima:",
+        data
+      );
 
-await prosesSignal(data);
+      await prosesSignal(data);
 
-});
+    }
+  );
 
 
-/* =========================
-   SUBSCRIBE
-========================= */
+  /* =========================
+     SUBSCRIBE
+  ========================= */
 
-channel.subscribe(
-async function(state,error){
+  channel.subscribe(
+    async function(state,error){
 
-console.log(
-"Supabase status:",
-state,
-error
-);
+      console.log(
+        "Supabase:",
+        state,
+        error
+      );
 
 
-if(state === "SUBSCRIBED"){
+      if(state === "SUBSCRIBED"){
 
-status.innerText =
-"🟢 Room terhubung. Menunggu pasangan...";
+        status.innerText =
+        "🟢 Room terhubung. Menunggu pasangan...";
 
 
-/*
-Kirim HELLO setelah
-channel benar-benar aktif.
-*/
+        /*
+          HELLO dikirim setelah
+          channel benar-benar aktif.
+        */
 
-await kirim({
-type:"hello"
-});
+        await kirim({
+          type:"hello"
+        });
 
 
-/*
-Tombol foto hanya host.
-*/
+        /*
+          Hanya pembuat room
+          yang melihat tombol foto.
+        */
 
-if(role === "host"){
+        if(role === "host"){
 
-fotoBtn.classList.remove(
-"hidden"
-);
+          fotoBtn.classList.remove(
+            "hidden"
+          );
 
-}
+        }
 
-}
+      }
 
 
-else if(
-state === "CHANNEL_ERROR"
-){
+      else if(
+        state === "CHANNEL_ERROR"
+      ){
 
-status.innerText =
-"❌ CHANNEL ERROR";
+        status.innerText =
+        "❌ CHANNEL ERROR";
 
-console.error(error);
+        console.error(error);
 
-}
+      }
 
 
-else if(
-state === "TIMED_OUT"
-){
+      else if(
+        state === "TIMED_OUT"
+      ){
 
-status.innerText =
-"❌ Koneksi Supabase timeout";
+        status.innerText =
+        "❌ Koneksi Supabase timeout";
 
-}
+      }
 
 
-else if(
-state === "CLOSED"
-){
+      else if(
+        state === "CLOSED"
+      ){
 
-status.innerText =
-"Room ditutup.";
+        status.innerText =
+        "Room ditutup.";
 
-}
+      }
 
-});
+    }
+  );
 
 }
 
@@ -654,195 +697,204 @@ status.innerText =
 copyRoom.onclick =
 async function(){
 
-try{
+  try{
 
-await navigator.clipboard.writeText(
-roomCode
-);
+    await navigator
+    .clipboard
+    .writeText(roomCode);
 
-alert(
-"Kode room berhasil disalin: "+
-roomCode
-);
 
-}catch(e){
+    alert(
+      "Kode room berhasil disalin:\n"+
+      roomCode
+    );
 
-prompt(
-"Salin kode ini:",
-roomCode
-);
+  }catch(error){
 
-}
+    prompt(
+      "Salin kode room:",
+      roomCode
+    );
+
+  }
 
 };
 
 
 /* ==================================================
-   WEBRTC PEER
+   BUAT WEBRTC PEER
 ================================================== */
 
 function buatPeer(){
 
-peer =
-new RTCPeerConnection({
+  peer =
+  new RTCPeerConnection({
 
-iceServers:[
+    iceServers:[
 
-{
-urls:
-"stun:stun.l.google.com:19302"
-},
+      {
+        urls:
+        "stun:stun.l.google.com:19302"
+      },
 
-{
-urls:
-"stun:stun1.l.google.com:19302"
-}
+      {
+        urls:
+        "stun:stun1.l.google.com:19302"
+      }
 
-]
+    ]
 
-});
-
-
-remoteStream =
-new MediaStream();
+  });
 
 
-remoteVideo.srcObject =
-remoteStream;
+  remoteStream =
+  new MediaStream();
 
 
-/* =========================
-   TRACK KAMERA SENDIRI
-========================= */
-
-localStream
-.getTracks()
-.forEach(
-function(track){
-
-peer.addTrack(
-track,
-localStream
-);
-
-});
+  remoteVideo.srcObject =
+  remoteStream;
 
 
-/* =========================
-   TERIMA VIDEO TEMAN
-========================= */
+  /* =========================
+     KAMERA SENDIRI
+  ========================= */
 
-peer.ontrack =
-function(event){
+  localStream
+  .getTracks()
+  .forEach(
+    function(track){
 
-console.log(
-"Remote video diterima"
-);
+      peer.addTrack(
+        track,
+        localStream
+      );
 
-
-if(
-event.streams &&
-event.streams[0]
-){
-
-event.streams[0]
-.getTracks()
-.forEach(
-function(track){
-
-if(
-!remoteStream
-.getTracks()
-.includes(track)
-){
-
-remoteStream.addTrack(
-track
-);
-
-}
-
-});
-
-}
-
-};
+    }
+  );
 
 
-/* =========================
-   ICE
-========================= */
+  /* =========================
+     VIDEO TEMAN
+  ========================= */
 
-peer.onicecandidate =
-async function(event){
+  peer.ontrack =
+  function(event){
 
-if(
-event.candidate
-){
-
-await kirim({
-
-type:"candidate",
-
-candidate:
-event.candidate
-
-});
-
-}
-
-};
+    console.log(
+      "Video pasangan diterima"
+    );
 
 
-/* =========================
-   STATUS
-========================= */
+    if(
+      event.streams &&
+      event.streams[0]
+    ){
 
-peer.onconnectionstatechange =
-function(){
+      event.streams[0]
+      .getTracks()
+      .forEach(
+        function(track){
 
-const state =
-peer.connectionState;
+          if(
+            !remoteStream
+            .getTracks()
+            .includes(track)
+          ){
 
+            remoteStream.addTrack(
+              track
+            );
 
-console.log(
-"WebRTC:",
-state
-);
+          }
 
+        }
+      );
 
-if(state === "connected"){
+    }
 
-status.innerText =
-"🟢 PASANGAN TERHUBUNG";
-
-}
-
-
-if(state === "connecting"){
-
-status.innerText =
-"🟡 Menghubungkan kamera...";
-
-}
+  };
 
 
-if(state === "disconnected"){
+  /* =========================
+     ICE
+  ========================= */
 
-status.innerText =
-"🟠 Koneksi terputus sementara";
+  peer.onicecandidate =
+  async function(event){
 
-}
+    if(event.candidate){
+
+      await kirim({
+
+        type:"candidate",
+
+        candidate:
+        event.candidate
+
+      });
+
+    }
+
+  };
 
 
-if(state === "failed"){
+  /* =========================
+     STATUS WEBRTC
+  ========================= */
 
-status.innerText =
-"🔴 WebRTC gagal terhubung";
+  peer.onconnectionstatechange =
+  function(){
 
-}
+    const state =
+    peer.connectionState;
 
-};
+
+    console.log(
+      "WebRTC:",
+      state
+    );
+
+
+    if(
+      state === "connected"
+    ){
+
+      status.innerText =
+      "🟢 PASANGAN TERHUBUNG";
+
+    }
+
+
+    else if(
+      state === "connecting"
+    ){
+
+      status.innerText =
+      "🟡 Menghubungkan kamera...";
+
+    }
+
+
+    else if(
+      state === "disconnected"
+    ){
+
+      status.innerText =
+      "🟠 Koneksi terputus sementara";
+
+    }
+
+
+    else if(
+      state === "failed"
+    ){
+
+      status.innerText =
+      "🔴 WebRTC gagal terhubung";
+
+    }
+
+  };
 
 }
 
@@ -853,37 +905,37 @@ status.innerText =
 
 async function kirim(data){
 
-if(!channel){
+  if(!channel){
 
-console.log(
-"Channel belum tersedia"
-);
+    console.log(
+      "Channel belum tersedia"
+    );
 
-return;
+    return;
 
-}
+  }
 
 
-try{
+  try{
 
-await channel.send({
+    await channel.send({
 
-type:"broadcast",
+      type:"broadcast",
 
-event:"signal",
+      event:"signal",
 
-payload:data
+      payload:data
 
-});
+    });
 
-}catch(error){
+  }catch(error){
 
-console.error(
-"Gagal mengirim:",
-error
-);
+    console.error(
+      "Gagal mengirim signal:",
+      error
+    );
 
-}
+  }
 
 }
 
@@ -894,155 +946,155 @@ error
 
 async function prosesSignal(data){
 
-try{
+  try{
 
 
-/* =========================
-   HOST TERIMA HELLO
-========================= */
+    /* =========================
+       HOST TERIMA HELLO
+    ========================= */
 
-if(
-data.type === "hello" &&
-role === "host"
-){
+    if(
+      data.type === "hello" &&
+      role === "host"
+    ){
 
-console.log(
-"Guest masuk room"
-);
-
-
-status.innerText =
-"🟡 Pasangan ditemukan. Menghubungkan...";
+      console.log(
+        "Pasangan masuk room"
+      );
 
 
-const offer =
-await peer.createOffer();
+      status.innerText =
+      "🟡 Pasangan ditemukan...";
 
 
-await peer.setLocalDescription(
-offer
-);
+      const offer =
+      await peer.createOffer();
 
 
-await kirim({
-
-type:"offer",
-
-sdp:
-peer.localDescription
-
-});
-
-}
+      await peer.setLocalDescription(
+        offer
+      );
 
 
-/* =========================
-   GUEST TERIMA OFFER
-========================= */
+      await kirim({
 
-else if(
-data.type === "offer" &&
-role === "guest"
-){
+        type:"offer",
 
-console.log(
-"Offer diterima"
-);
+        sdp:
+        peer.localDescription
+
+      });
+
+    }
 
 
-await peer.setRemoteDescription(
-data.sdp
-);
+    /* =========================
+       GUEST TERIMA OFFER
+    ========================= */
+
+    else if(
+      data.type === "offer" &&
+      role === "guest"
+    ){
+
+      console.log(
+        "Offer diterima"
+      );
 
 
-const answer =
-await peer.createAnswer();
+      await peer.setRemoteDescription(
+        data.sdp
+      );
 
 
-await peer.setLocalDescription(
-answer
-);
+      const answer =
+      await peer.createAnswer();
 
 
-await kirim({
-
-type:"answer",
-
-sdp:
-peer.localDescription
-
-});
-
-}
+      await peer.setLocalDescription(
+        answer
+      );
 
 
-/* =========================
-   HOST TERIMA ANSWER
-========================= */
+      await kirim({
 
-else if(
-data.type === "answer" &&
-role === "host"
-){
+        type:"answer",
 
-console.log(
-"Answer diterima"
-);
+        sdp:
+        peer.localDescription
+
+      });
+
+    }
 
 
-await peer.setRemoteDescription(
-data.sdp
-);
+    /* =========================
+       HOST TERIMA ANSWER
+    ========================= */
 
-}
+    else if(
+      data.type === "answer" &&
+      role === "host"
+    ){
 
-
-/* =========================
-   ICE CANDIDATE
-========================= */
-
-else if(
-data.type === "candidate"
-){
-
-try{
-
-await peer.addIceCandidate(
-data.candidate
-);
-
-}catch(error){
-
-console.log(
-"ICE belum bisa ditambahkan"
-);
-
-}
-
-}
+      console.log(
+        "Answer diterima"
+      );
 
 
-/* =========================
-   FOTO
-========================= */
+      await peer.setRemoteDescription(
+        data.sdp
+      );
 
-else if(
-data.type === "photo" &&
-role === "guest"
-){
+    }
 
-ambilFoto();
 
-}
+    /* =========================
+       ICE
+    ========================= */
 
-}catch(error){
+    else if(
+      data.type === "candidate"
+    ){
 
-console.error(
-"Signal error:",
-error
-);
+      try{
 
-}
+        await peer.addIceCandidate(
+          data.candidate
+        );
+
+      }catch(error){
+
+        console.log(
+          "ICE belum siap"
+        );
+
+      }
+
+    }
+
+
+    /* =========================
+       FOTO
+    ========================= */
+
+    else if(
+      data.type === "photo" &&
+      role === "guest"
+    ){
+
+      ambilFoto();
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "Signal error:",
+      error
+    );
+
+  }
 
 }
 
@@ -1054,26 +1106,26 @@ error
 fotoBtn.onclick =
 async function(){
 
-if(role !== "host")
-return;
+  if(role !== "host")
+  return;
 
 
-/*
-Beritahu HP pasangan.
-*/
+  /*
+    Kirim perintah ke HP pasangan.
+  */
 
-await kirim({
+  await kirim({
 
-type:"photo"
+    type:"photo"
 
-});
+  });
 
 
-/*
-Host juga foto.
-*/
+  /*
+    Host ikut countdown.
+  */
 
-ambilFoto();
+  ambilFoto();
 
 };
 
@@ -1084,267 +1136,288 @@ ambilFoto();
 
 async function ambilFoto(){
 
-countdown
-.classList
-.remove("hidden");
+  countdown.classList.remove(
+    "hidden"
+  );
 
 
-for(
-let i=3;
-i>=1;
-i--
-){
+  for(
+    let i=3;
+    i>=1;
+    i--
+  ){
 
-countdown.innerText =
-i;
-
-await tunggu(700);
-
-}
+    countdown.innerText =
+    i;
 
 
-countdown.innerText =
-"📸";
+    await tunggu(
+      700
+    );
 
-await tunggu(300);
-
-
-countdown
-.classList
-.add("hidden");
+  }
 
 
-buatFoto();
+  countdown.innerText =
+  "📸";
+
+
+  await tunggu(
+    300
+  );
+
+
+  countdown.classList.add(
+    "hidden"
+  );
+
+
+  buatFoto();
 
 }
 
 
 /* ==================================================
-   TUNGGU
+   TIMER
 ================================================== */
 
 function tunggu(ms){
 
-return new Promise(
-function(resolve){
+  return new Promise(
+    function(resolve){
 
-setTimeout(
-resolve,
-ms
-);
+      setTimeout(
+        resolve,
+        ms
+      );
 
-});
+    }
+  );
 
 }
 
 
 /* ==================================================
-   BUAT FOTO
+   BUAT HASIL FOTO
 ================================================== */
 
 function buatFoto(){
 
-const W = 540;
+  /*
+    Ukuran hasil:
+    540 x 960
+    = rasio 9:16
+  */
 
-const H = 960;
+  const W = 540;
 
-
-hasil.width =
-W;
-
-hasil.height =
-H;
-
-
-const ctx =
-hasil.getContext("2d");
+  const H = 960;
 
 
-/* background */
+  hasil.width =
+  W;
 
-ctx.fillStyle =
-"#000";
-
-ctx.fillRect(
-0,
-0,
-W,
-H
-);
+  hasil.height =
+  H;
 
 
-/*
-Foto kiri.
-*/
-
-gambarVideo(
-ctx,
-localVideo,
-0,
-0,
-W/2,
-H
-);
+  const ctx =
+  hasil.getContext("2d");
 
 
-/*
-Foto kanan.
-*/
+  /* background */
 
-gambarVideo(
-ctx,
-remoteVideo,
-W/2,
-0,
-W/2,
-H
-);
+  ctx.fillStyle =
+  "#000";
 
-
-/*
-Garis tengah.
-*/
-
-ctx.fillStyle =
-"#fff";
-
-ctx.fillRect(
-W/2-1,
-0,
-2,
-H
-);
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
 
 
-hasil.classList.remove(
-"hidden"
-);
+  /*
+    Kamera kiri
+  */
+
+  gambarVideo(
+    ctx,
+    localVideo,
+    0,
+    0,
+    W/2,
+    H
+  );
 
 
-/*
-Buat link download.
-*/
+  /*
+    Kamera kanan
+  */
 
-download.href =
-hasil.toDataURL(
-"image/jpeg",
-0.92
-);
+  gambarVideo(
+    ctx,
+    remoteVideo,
+    W/2,
+    0,
+    W/2,
+    H
+  );
 
 
-download.classList.remove(
-"hidden"
-);
+  /*
+    Garis pemisah
+  */
+
+  ctx.fillStyle =
+  "#fff";
+
+  ctx.fillRect(
+    W/2-1,
+    0,
+    2,
+    H
+  );
+
+
+  hasil.classList.remove(
+    "hidden"
+  );
+
+
+  /*
+    Download JPEG
+  */
+
+  download.href =
+  hasil.toDataURL(
+    "image/jpeg",
+    0.92
+  );
+
+
+  download.classList.remove(
+    "hidden"
+  );
 
 }
 
 
 /* ==================================================
-   GAMBAR VIDEO KE CANVAS
+   GAMBAR VIDEO
 ================================================== */
 
 function gambarVideo(
-ctx,
-video,
-x,
-y,
-w,
-h
+  ctx,
+  video,
+  x,
+  y,
+  w,
+  h
 ){
 
-if(
-!video ||
-video.readyState < 2 ||
-!video.videoWidth
-){
+  /*
+    Kalau video belum siap.
+  */
 
-ctx.fillStyle =
-"#222";
+  if(
+    !video ||
+    video.readyState < 2 ||
+    !video.videoWidth
+  ){
 
-ctx.fillRect(
-x,
-y,
-w,
-h
-);
+    ctx.fillStyle =
+    "#222";
 
-ctx.fillStyle =
-"#aaa";
-
-ctx.font =
-"14px Arial";
-
-ctx.textAlign =
-"center";
-
-ctx.fillText(
-"Video belum siap",
-x+w/2,
-y+h/2
-);
-
-return;
-
-}
+    ctx.fillRect(
+      x,
+      y,
+      w,
+      h
+    );
 
 
-const vw =
-video.videoWidth;
+    ctx.fillStyle =
+    "#aaa";
 
-const vh =
-video.videoHeight;
+    ctx.font =
+    "14px Arial";
 
+    ctx.textAlign =
+    "center";
 
-/*
-object-fit:cover
-*/
+    ctx.fillText(
+      "Video belum siap",
+      x+w/2,
+      y+h/2
+    );
 
-const scale =
-Math.max(
-w/vw,
-h/vh
-);
+    return;
 
-
-const nw =
-vw*scale;
-
-const nh =
-vh*scale;
+  }
 
 
-const dx =
-x+(w-nw)/2;
+  const vw =
+  video.videoWidth;
 
-const dy =
-y+(h-nh)/2;
-
-
-ctx.save();
+  const vh =
+  video.videoHeight;
 
 
-ctx.beginPath();
+  /*
+    FIT TANPA ZOOM/CROP.
 
-ctx.rect(
-x,
-y,
-w,
-h
-);
+    Kamera dimasukkan seluruhnya
+    ke area foto.
+  */
 
-ctx.clip();
-
-
-ctx.drawImage(
-video,
-dx,
-dy,
-nw,
-nh
-);
+  const scale =
+  Math.min(
+    w/vw,
+    h/vh
+  );
 
 
-ctx.restore();
+  const nw =
+  vw*scale;
+
+  const nh =
+  vh*scale;
+
+
+  const dx =
+  x+(w-nw)/2;
+
+  const dy =
+  y+(h-nh)/2;
+
+
+  ctx.save();
+
+
+  ctx.beginPath();
+
+  ctx.rect(
+    x,
+    y,
+    w,
+    h
+  );
+
+  ctx.clip();
+
+
+  ctx.drawImage(
+    video,
+    dx,
+    dy,
+    nw,
+    nh
+  );
+
+
+  ctx.restore();
 
 }
 

@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio - Photobooth Edition</title>
+  <title>Mini LDR Studio - Photobooth Virtual BG Edition</title>
+  
+  <!-- Supabase & MediaPipe Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+
   <style>
     *{box-sizing:border-box}
     body{ margin:0; background:#080808; color:#fff; font-family:Arial,sans-serif; text-align:center }
     main{ max-width:900px; margin:auto; padding:10px }
     h1{ font-size:22px; margin:7px 0 }
     p{ color:#bbb; margin:5px }
-    button,input{ border:0; border-radius:9px; padding:11px 13px; font-size:14px }
+    button,input,select{ border:0; border-radius:9px; padding:11px 13px; font-size:14px }
     button{ background:#e53935; color:#fff; font-weight:bold; margin:4px; cursor:pointer }
     button:active{ transform:scale(.96) }
-    input{ text-align:center }
+    input,select{ text-align:center; background:#222; color:#fff; border:1px solid #444 }
     #kodeInput{ width:140px; text-transform:uppercase }
     #status{ margin:9px; color:#79ff79; font-size:13px }
     #roomInfo{ margin:8px; font-size:16px }
@@ -23,9 +28,8 @@
     /* ========================= KAMERA 3:4 ========================= */
     .cameras{ display:grid; grid-template-columns:1fr 1fr; gap:5px }
     .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#000; overflow:hidden; border-radius:10px }
-    .camera video{ width:100%; height:100%; object-fit:cover; background:#000 }
-    #localVideo{ transform:scaleX(-1) }
-    #remoteVideo{ transform:none }
+    .camera video, .camera canvas{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+    #localCanvas{ transform:scaleX(-1) } /* Mirror untuk selfie */
     .label{ position:absolute; top:7px; left:7px; z-index:5; background:#000b; padding:5px 8px; border-radius:6px; font-size:11px }
 
     /* ========================= KONTROL ========================= */
@@ -33,16 +37,20 @@
     #fotoBtn{ font-size:16px; padding:13px 22px }
     #copyRoom{ background:#333 }
 
-    /* ========================= EFEK ========================= */
+    /* ========================= EFEK & BG ========================= */
     .effects{ display:flex; gap:5px; overflow-x:auto; padding:8px 2px; margin-top:5px }
     .effects button{ white-space:nowrap; background:#252525; font-size:12px }
     .effects button.active{ background:#e53935 }
     #effectName{ font-size:12px; color:#aaa }
 
+    .bgContainer{ background:#151515; border-radius:10px; padding:10px; margin-top:10px; text-align:left }
+    .bgContainer h3{ margin:2px 0 7px; font-size:15px }
+    .bgContainer select{ width:100%; text-align:left; padding:10px; margin-bottom:8px }
+
     /* ========================= AI ========================= */
     .ai{ background:#151515; border-radius:10px; padding:10px; margin-top:10px; text-align:left }
     .ai h3{ margin:2px 0 7px; font-size:15px }
-    #aiPrompt{ width:100%; text-align:left; background:#222; color:#fff; outline:none }
+    #aiPrompt{ width:100%; text-align:left; outline:none }
     #aiPrompt::placeholder{ color:#777 }
     #aiPreview{ margin-top:7px; color:#aaa; font-size:12px; line-height:1.4 }
 
@@ -53,19 +61,16 @@
     #photoCount{ font-size:12px; color:#aaa }
     .gallery{ display:flex; flex-direction:column; gap:12px }
     .photoCard{ background:#151515; border-radius:12px; padding:10px; border:1px solid #292929; text-align:center }
-    .photoNumber{ font-size:12px; color:#aaa; margin-bottom:7px; text-align:left }
     .photoCard img{ display:block; width:100%; max-width:280px; margin:auto; border-radius:7px; border:2px solid #333 }
     .photoActions{ display:flex; justify-content:center; gap:5px; margin-top:10px; flex-wrap:wrap }
-    .deleteBtn{ background:#b91c1c }
     .downloadBtn{ background:#2563eb }
     .printBtn{ background:#16a34a }
-    #renderStripBtn{ width:100%; background:#fff; color:#111; font-size:15px; padding:13px }
     .emptyGallery{ background:#111; border:1px dashed #444; border-radius:10px; padding:20px; color:#777; font-size:13px; text-align:center }
 
     /* ========================= COUNTDOWN ========================= */
     #countdown{ position:fixed; inset:0; background:#000c; z-index:999; display:flex; align-items:center; justify-content:center; font-size:100px; font-weight:bold }
 
-    /* ========================= FILTER ========================= */
+    /* ========================= FILTER COLOR ========================= */
     .fx-normal{filter:none}
     .fx-vivid{filter:saturate(1.5) contrast(1.08)}
     .fx-warm{filter:sepia(.22) saturate(1.35) brightness(1.04)}
@@ -73,32 +78,14 @@
     .fx-cinema{filter:contrast(1.25) saturate(.8) brightness(.9)}
     .fx-vintage{filter:sepia(.45) contrast(1.05) saturate(.75)}
     .fx-bw{filter:grayscale(1) contrast(1.15)}
-    .fx-fade{filter:contrast(.9) brightness(1.08) saturate(.65)}
-    .fx-dream{filter:brightness(1.08) saturate(1.25) blur(.15px)}
-    .fx-night{filter:brightness(.72) contrast(1.25) saturate(1.2)}
-    .fx-sunset{filter:sepia(.3) saturate(1.6) hue-rotate(-8deg)}
-    .fx-rose{filter:sepia(.12) saturate(1.35) hue-rotate(-12deg)}
-    .fx-moon{filter:grayscale(.3) brightness(.9) contrast(1.25)}
-    .fx-dramatic{filter:contrast(1.45) saturate(1.15) brightness(.88)}
 
     /* ========================= PRINT PHOTOBOOTH STRIP ========================= */
     #printSheet { display: none; }
     @media print{
       body{ background:#fff; color:#000 }
       body > *{ display:none!important }
-      #printSheet{ 
-        display:flex!important; 
-        justify-content:center;
-        align-items:flex-start;
-        width:100%; 
-        padding:5mm; 
-      }
-      .printStripPhoto{ 
-        display:block; 
-        width:100%; 
-        max-width:80mm; /* Ukuran standar kertas Photobooth Strip */
-        height:auto;
-      }
+      #printSheet{ display:flex!important; justify-content:center; align-items:flex-start; width:100%; padding:5mm; }
+      .printStripPhoto{ display:block; width:100%; max-width:80mm; height:auto; }
       @page{ size:A4 portrait; margin:10mm }
     }
   </style>
@@ -107,7 +94,7 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • Photobooth Strip Edition</p>
+  <p>Studio foto jarak jauh • Virtual BG Photobooth</p>
 
   <div id="setup">
     <button id="buatBtn">BUAT ROOM</button>
@@ -121,14 +108,17 @@
   <button id="copyRoom" class="hidden">📋 SALIN KODE</button>
   <div id="status">Belum terhubung</div>
 
+  <!-- KAMERA DISPLAY (CANVAS REALTIME SEGMENTASI) -->
   <div id="cameras" class="cameras hidden">
     <div class="camera">
       <div class="label">KAMU</div>
-      <video id="localVideo" autoplay playsinline muted></video>
+      <video id="localVideo" class="hidden" autoplay playsinline muted></video>
+      <canvas id="localCanvas"></canvas>
     </div>
     <div class="camera">
       <div class="label">PASANGAN</div>
-      <video id="remoteVideo" autoplay playsinline></video>
+      <video id="remoteVideo" class="hidden" autoplay playsinline></video>
+      <canvas id="remoteCanvas"></canvas>
     </div>
   </div>
 
@@ -136,6 +126,20 @@
     <button id="fotoBtn" class="hidden">📸 JEPET FOTO (MAX 4)</button>
   </div>
 
+  <!-- BG SELECTOR -->
+  <div id="bgArea" class="bgContainer hidden">
+    <h3>🖼️ Virtual Background Kamera</h3>
+    <select id="bgSelect">
+      <option value="none">📷 Original Background</option>
+      <option value="blur">💧 Blur Screen</option>
+      <option value="green">🟩 Green Screen (#00FF00)</option>
+      <option value="pantai">🏖️ Pantai Sunset</option>
+      <option value="gunung">⛰️ Pegunungan</option>
+      <option value="city">🏙️ Rooftop Kota</option>
+    </select>
+  </div>
+
+  <!-- COLOR FILTER -->
   <div id="effectArea" class="hidden">
     <div id="effectName">Efek: Normal</div>
     <div class="effects">
@@ -146,30 +150,23 @@
       <button data-fx="fx-cinema">Cinema</button>
       <button data-fx="fx-vintage">Vintage</button>
       <button data-fx="fx-bw">B&W</button>
-      <button data-fx="fx-fade">Fade</button>
-      <button data-fx="fx-dream">Dream</button>
-      <button data-fx="fx-night">Night</button>
-      <button data-fx="fx-sunset">Sunset</button>
-      <button data-fx="fx-rose">Rose</button>
-      <button data-fx="fx-moon">Moon</button>
-      <button data-fx="fx-dramatic">Dramatic</button>
     </div>
   </div>
 
+  <!-- AI PROMPT -->
   <div id="aiArea" class="ai hidden">
-    <h3>🤖 Prompt AI Background</h3>
-    <input id="aiPrompt" placeholder="Contoh: rooftop kota Jakarta saat sunset, cinematic...">
-    <button id="aiBtn" style="margin-top: 6px;">✨ TERAPKAN PROMPT</button>
+    <h3>🤖 Prompt AI Background Text</h3>
+    <input id="aiPrompt" placeholder="Contoh: Studio Aestetik Modern, Sunset vibe...">
+    <button id="aiBtn" style="margin-top: 6px;">✨ TERAPKAN TEMA AI</button>
     <div id="aiPreview">Prompt belum digunakan.</div>
   </div>
 
+  <!-- GALERI -->
   <div id="galleryArea" class="hidden">
     <div class="galleryTitle">
       <h2>🎞️ Photobooth Strip Hasil</h2>
       <span id="photoCount">0 Pose Ambil</span>
     </div>
-
-    <!-- Tempat Preview Photobooth Strip -->
     <div id="gallery" class="gallery"></div>
     <br>
     <button id="resetBtn" style="background:#444;">🔄 RESET/AMBIL ULANG</button>
@@ -197,9 +194,18 @@ let currentPrompt = "";
 let capturing = false;
 let pendingCandidates = [];
 
-/* Maksimal frame dalam 1 kertas Photobooth Strip (Rekomendasi: 3 atau 4 pose) */
 const MAX_PHOTOS = 4;
-let photoFrames = []; // Menyimpan canvas individual tiap jepretan
+let photoFrames = [];
+
+/* Background Images Preload */
+const bgImages = {
+  pantai: new Image(),
+  gunung: new Image(),
+  city: new Image()
+};
+bgImages.pantai.src = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80";
+bgImages.gunung.src = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80";
+bgImages.city.src = "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80";
 
 /* ================================================== ELEMENT ================================================== */
 const setup = document.getElementById("setup");
@@ -208,9 +214,16 @@ const status = document.getElementById("status");
 const cameras = document.getElementById("cameras");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
+const localCanvas = document.getElementById("localCanvas");
+const remoteCanvas = document.getElementById("remoteCanvas");
+const localCtx = localCanvas.getContext("2d");
+const remoteCtx = remoteCanvas.getContext("2d");
+
 const fotoBtn = document.getElementById("fotoBtn");
 const copyRoom = document.getElementById("copyRoom");
 const countdown = document.getElementById("countdown");
+const bgArea = document.getElementById("bgArea");
+const bgSelect = document.getElementById("bgSelect");
 const effectArea = document.getElementById("effectArea");
 const aiArea = document.getElementById("aiArea");
 const effectName = document.getElementById("effectName");
@@ -222,30 +235,79 @@ const photoCount = document.getElementById("photoCount");
 const resetBtn = document.getElementById("resetBtn");
 const printSheet = document.getElementById("printSheet");
 
+/* ================================================== MEDIAPIPE SEGMENTATION ================================================== */
+const selfieSegmentation = new SelfieSegmentation({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+});
+
+selfieSegmentation.setOptions({ modelSelection: 1 });
+selfieSegmentation.onResults(processSelfieResults);
+
+async function renderVideoLoop() {
+  if (localVideo.readyState >= 2) {
+    await selfieSegmentation.send({ image: localVideo });
+  }
+  // Render Kamera Remote langsung ke canvas remote
+  if (remoteVideo.readyState >= 2) {
+    remoteCanvas.width = remoteVideo.videoWidth || 640;
+    remoteCanvas.height = remoteVideo.videoHeight || 480;
+    remoteCtx.filter = getComputedStyle(remoteVideo).filter;
+    remoteCtx.drawImage(remoteVideo, 0, 0, remoteCanvas.width, remoteCanvas.height);
+  }
+  requestAnimationFrame(renderVideoLoop);
+}
+
+function processSelfieResults(results) {
+  localCanvas.width = results.image.width;
+  localCanvas.height = results.image.height;
+  
+  localCtx.save();
+  localCtx.clearRect(0, 0, localCanvas.width, localCanvas.height);
+  
+  // 1. Gambar Background Pilihan
+  const bgType = bgSelect.value;
+  localCtx.filter = getComputedStyle(localVideo).filter;
+
+  if (bgType === "green") {
+    localCtx.fillStyle = "#00FF00";
+    localCtx.fillRect(0, 0, localCanvas.width, localCanvas.height);
+  } else if (bgType === "blur") {
+    localCtx.filter = `blur(10px) ${getComputedStyle(localVideo).filter}`;
+    localCtx.drawImage(results.image, 0, 0, localCanvas.width, localCanvas.height);
+  } else if (bgImages[bgType] && bgImages[bgType].complete) {
+    localCtx.drawImage(bgImages[bgType], 0, 0, localCanvas.width, localCanvas.height);
+  } else {
+    localCtx.drawImage(results.image, 0, 0, localCanvas.width, localCanvas.height);
+  }
+
+  // 2. Timpa Wajah/Subjek Manusia
+  if (bgType !== "none") {
+    localCtx.globalCompositeOperation = 'destination-atop';
+    localCtx.drawImage(results.segmentationMask, 0, 0, localCanvas.width, localCanvas.height);
+    localCtx.globalCompositeOperation = 'destination-over';
+    localCtx.drawImage(results.image, 0, 0, localCanvas.width, localCanvas.height);
+  }
+  
+  localCtx.restore();
+}
+
 /* ================================================== KODE ROOM ================================================== */
 function buatKode(){
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let kode = "";
-  for(let i = 0; i < 6; i++){
-    kode += chars[Math.floor(Math.random() * chars.length)];
-  }
+  for(let i = 0; i < 6; i++) kode += chars[Math.floor(Math.random() * chars.length)];
   return kode;
 }
 
-/* ================================================== BUAT ROOM ================================================== */
 document.getElementById("buatBtn").onclick = async function(){
   role = "host";
   roomCode = buatKode();
   await masukRoom();
 };
 
-/* ================================================== GABUNG ================================================== */
 document.getElementById("gabungBtn").onclick = async function(){
   const kode = document.getElementById("kodeInput").value.trim().toUpperCase();
-  if(kode.length !== 6){
-    alert("Kode room harus 6 karakter.");
-    return;
-  }
+  if(kode.length !== 6){ alert("Kode room harus 6 karakter."); return; }
   role = "guest";
   roomCode = kode;
   await masukRoom();
@@ -260,16 +322,14 @@ async function masukRoom(){
 
   try{
     localStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "user" },
-        width: { ideal: 1080 },
-        height: { ideal: 1440 },
-        aspectRatio: { ideal: 3/4 }
-      },
+      video: { facingMode: { ideal: "user" }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3/4 } },
       audio: false
     });
     localVideo.srcObject = localStream;
-    localVideo.className = "fx-normal";
+    localVideo.onloadedmetadata = () => {
+      localVideo.play();
+      renderVideoLoop(); // Jalankan AI Segmentation Loop
+    };
   }catch(error){
     console.error(error);
     status.innerText = "❌ Kamera gagal.";
@@ -278,369 +338,217 @@ async function masukRoom(){
   }
 
   cameras.classList.remove("hidden");
+  bgArea.classList.remove("hidden");
   effectArea.classList.remove("hidden");
   aiArea.classList.remove("hidden");
 
   buatPeer();
 
-  channel = supabaseClient.channel("mini-ldr-room-" + roomCode, {
-    config: { broadcast: { self: false } }
-  });
-
-  channel.on("broadcast", { event: "signal" }, async function(message){
-    await prosesSignal(message.payload);
-  });
-
-  channel.subscribe(async function(state, error){
+  channel = supabaseClient.channel("mini-ldr-room-" + roomCode, { config: { broadcast: { self: false } } });
+  channel.on("broadcast", { event: "signal" }, async (msg) => await prosesSignal(msg.payload));
+  channel.subscribe(async (state) => {
     if(state === "SUBSCRIBED"){
       status.innerText = "🟢 Room terhubung. Menunggu pasangan...";
       await kirim({ type: "hello" });
       fotoBtn.classList.remove("hidden");
-    } else if(state === "CHANNEL_ERROR"){
-      status.innerText = "❌ CHANNEL ERROR";
-    } else if(state === "TIMED_OUT"){
-      status.innerText = "❌ Supabase timeout";
     }
   });
 }
 
-/* ================================================== COPY ROOM ================================================== */
-copyRoom.onclick = async function(){
-  try{
-    await navigator.clipboard.writeText(roomCode);
-    alert("Kode room:\n" + roomCode);
-  }catch(e){
-    prompt("Salin kode:", roomCode);
-  }
+copyRoom.onclick = async () => {
+  try { await navigator.clipboard.writeText(roomCode); alert("Kode room:\n" + roomCode); }
+  catch(e) { prompt("Salin kode:", roomCode); }
 };
 
 /* ================================================== WEBRTC ================================================== */
 function buatPeer(){
-  peer = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" }
-    ]
-  });
-
+  peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
   remoteStream = new MediaStream();
   remoteVideo.srcObject = remoteStream;
 
-  localStream.getTracks().forEach(track => {
-    peer.addTrack(track, localStream);
-  });
-
+  localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
   peer.ontrack = event => {
     if(event.streams && event.streams[0]){
       event.streams[0].getTracks().forEach(track => {
-        if(!remoteStream.getTracks().includes(track)){
-          remoteStream.addTrack(track);
-        }
+        if(!remoteStream.getTracks().includes(track)) remoteStream.addTrack(track);
       });
     }
   };
-
   peer.onicecandidate = async event => {
-    if(event.candidate){
-      await kirim({ type: "candidate", candidate: event.candidate });
-    }
+    if(event.candidate) await kirim({ type: "candidate", candidate: event.candidate });
   };
-
   peer.onconnectionstatechange = () => {
-    const state = peer.connectionState;
-    if(state === "connected"){
-      status.innerText = "🟢 PASANGAN TERHUBUNG";
-    } else if(state === "connecting"){
-      status.innerText = "🟡 Menghubungkan kamera...";
-    } else if(state === "disconnected"){
-      status.innerText = "🟠 Koneksi terputus";
-    } else if(state === "failed"){
-      status.innerText = "🔴 WebRTC gagal";
-    }
+    if(peer.connectionState === "connected") status.innerText = "🟢 PASANGAN TERHUBUNG";
+    else if(peer.connectionState === "connecting") status.innerText = "🟡 Menghubungkan kamera...";
   };
 }
 
-/* ================================================== KIRIM ================================================== */
 async function kirim(data){
-  if(!channel) return;
-  try{
-    await channel.send({
-      type: "broadcast",
-      event: "signal",
-      payload: data
-    });
-  }catch(error){
-    console.error(error);
-  }
+  if(channel) await channel.send({ type: "broadcast", event: "signal", payload: data });
 }
 
-/* ================================================== SIGNAL ================================================== */
 async function prosesSignal(data){
   try{
     if(data.type === "hello" && role === "host"){
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
       await kirim({ type: "offer", sdp: peer.localDescription });
-    }
-    else if(data.type === "offer" && role === "guest"){
+    } else if(data.type === "offer" && role === "guest"){
       await peer.setRemoteDescription(data.sdp);
-      for(const candidate of pendingCandidates){
-        try{ await peer.addIceCandidate(candidate); }catch(e){}
-      }
-      pendingCandidates = [];
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
       await kirim({ type: "answer", sdp: peer.localDescription });
-    }
-    else if(data.type === "answer" && role === "host"){
+    } else if(data.type === "answer" && role === "host"){
       await peer.setRemoteDescription(data.sdp);
-      for(const candidate of pendingCandidates){
-        try{ await peer.addIceCandidate(candidate); }catch(e){}
-      }
-      pendingCandidates = [];
+    } else if(data.type === "candidate"){
+      if(peer.remoteDescription) await peer.addIceCandidate(data.candidate);
+    } else if(data.type === "photo" && !capturing){
+      capturing = true;
+      await ambilFoto();
+      capturing = false;
     }
-    else if(data.type === "candidate"){
-      if(peer.remoteDescription && peer.remoteDescription.type){
-        try{ await peer.addIceCandidate(data.candidate); }catch(e){}
-      }else{
-        pendingCandidates.push(data.candidate);
-      }
-    }
-    else if(data.type === "photo"){
-      if(!capturing){
-        capturing = true;
-        await ambilFoto();
-        capturing = false;
-      }
-    }
-  }catch(error){
-    console.error("Signal:", error);
-  }
+  }catch(e){}
 }
 
 /* ================================================== FOTO ================================================== */
 fotoBtn.onclick = async function(){
   if(photoFrames.length >= MAX_PHOTOS){
-    alert("📸 Photobooth sudah penuh (Maksimal 4 pose)!\n\nKlik Reset jika ingin mengulang dari awal.");
+    alert("📸 Photobooth sudah penuh! Klik Reset jika ingin mengulang.");
     return;
   }
   if(capturing) return;
   capturing = true;
-
   await kirim({ type: "photo" });
   await ambilFoto();
-
   capturing = false;
 };
 
-/* ================================================== COUNTDOWN ================================================== */
 async function ambilFoto(){
   countdown.classList.remove("hidden");
-  for(let i = 3; i >= 1; i--){
-    countdown.innerText = i;
-    await tunggu(700);
-  }
+  for(let i = 3; i >= 1; i--){ countdown.innerText = i; await tunggu(700); }
   countdown.innerText = "📸";
   await tunggu(300);
   countdown.classList.add("hidden");
-  
   simpanFrame();
 }
 
-function tunggu(ms){
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+function tunggu(ms){ return new Promise(r => setTimeout(r, ms)); }
 
 /* ================================================== EFEK ================================================== */
-document.querySelectorAll(".effects button").forEach(button => {
-  button.onclick = () => {
-    currentEffect = button.dataset.fx;
+document.querySelectorAll(".effects button").forEach(btn => {
+  btn.onclick = () => {
+    currentEffect = btn.dataset.fx;
     localVideo.className = currentEffect;
     remoteVideo.className = currentEffect;
     document.querySelectorAll(".effects button").forEach(b => b.classList.remove("active"));
-    button.classList.add("active");
-    effectName.innerText = "Efek: " + button.innerText;
+    btn.classList.add("active");
+    effectName.innerText = "Efek: " + btn.innerText;
   };
 });
 
-/* ================================================== AI PROMPT ================================================== */
 document.getElementById("aiBtn").onclick = function(){
   currentPrompt = aiPrompt.value.trim();
-  if(!currentPrompt){
-    aiPreview.innerText = "Masukkan prompt AI dulu.";
-    return;
-  }
-  aiPreview.innerHTML = "🤖 Konsep AI aktif:<br><b>" + escapeHTML(currentPrompt) + "</b>";
+  aiPreview.innerHTML = currentPrompt ? "🤖 Konsep AI: <b>" + escapeHTML(currentPrompt) + "</b>" : "Prompt belum digunakan.";
 };
 
-function escapeHTML(text){
-  return text
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-}
+function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ================================================== SIMPAN FRAME SATUAN ================================================== */
+/* ================================================== SIMPAN FRAME PHOTOBOOTH ================================================== */
 function simpanFrame(){
-  const W = 800;
-  const H = 450; // Perbandingan landscape per frame pose
+  const W = 800, H = 450;
   const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+  const photoW = W / 2, photoH = H;
 
-  const photoW = W / 2;
-  const photoH = H;
-
-  /* KIRI (Kamu) */
-  gambarVideo(ctx, localVideo, 0, 0, photoW, photoH);
-  /* KANAN (Pasangan) */
-  gambarVideo(ctx, remoteVideo, photoW, 0, photoW, photoH);
+  /* Gambar Canvas Lokal (Sudah Ada Segmentasi BG) */
+  ctx.drawImage(localCanvas, 0, 0, photoW, photoH);
+  /* Gambar Canvas Remote */
+  ctx.drawImage(remoteCanvas, photoW, 0, photoW, photoH);
 
   /* Garis Pemisah Tengah */
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(photoW - 1, 0, 2, photoH);
+  ctx.fillStyle = "#fff"; ctx.fillRect(photoW - 1, 0, 2, photoH);
 
   photoFrames.push(canvas);
   renderPhotoboothStrip();
 }
 
-/* ================================================== GAMBAR VIDEO ================================================== */
-function gambarVideo(ctx, video, x, y, w, h){
-  if(!video || video.readyState < 2 || !video.videoWidth){
-    ctx.fillStyle = "#222";
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = "#aaa";
-    ctx.font = "13px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Video belum siap", x + w/2, y + h/2);
-    return;
-  }
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-  const scale = Math.max(w / vw, h / vh);
-  const nw = vw * scale;
-  const nh = vh * scale;
-  const dx = x + (w - nw) / 2;
-  const dy = y + (h - nh) / 2;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
-  ctx.filter = getComputedStyle(video).filter;
-  ctx.drawImage(video, dx, dy, nw, nh);
-  ctx.restore();
-  ctx.filter = "none";
-}
-
-/* ================================================== GENERATE STRIP VERTIKAL (PHOTOBOOTH) ================================================== */
+/* ================================================== RENDER STRIP VERTIKAL ================================================== */
 function renderPhotoboothStrip(){
   gallery.innerHTML = "";
   photoCount.innerText = photoFrames.length + " / " + MAX_PHOTOS + " Pose";
 
   if(photoFrames.length === 0){
-    gallery.innerHTML = '<div class="emptyGallery">Belum ada foto.<br>Klik tombol foto untuk mulai mengambil pose.</div>';
+    gallery.innerHTML = '<div class="emptyGallery">Belum ada foto.</div>';
     galleryArea.classList.remove("hidden");
     return;
   }
 
   galleryArea.classList.remove("hidden");
 
-  // Ukuran dasar Kertas Strip Photobooth
-  const padding = 30;
-  const frameGap = 20;
-  const frameW = 800;
-  const frameH = 450;
-  const footerH = 140; // Space Logo / Teks bawah Photobooth
-
+  const padding = 30, frameGap = 20, frameW = 800, frameH = 450, footerH = 140;
   const stripW = frameW + (padding * 2);
   const stripH = (frameH * photoFrames.length) + (frameGap * (photoFrames.length - 1)) + (padding * 2) + footerH;
 
   const stripCanvas = document.createElement("canvas");
-  stripCanvas.width = stripW;
-  stripCanvas.height = stripH;
+  stripCanvas.width = stripW; stripCanvas.height = stripH;
   const ctx = stripCanvas.getContext("2d");
 
-  /* Background Kertas Photobooth (Warna Putih Khas Studio) */
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, stripW, stripH);
+  /* Background Kertas Photobooth White */
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, stripW, stripH);
 
-  /* Menumpuk foto dari ATAS ke BAWAH */
-  photoFrames.forEach((frameCanvas, index) => {
-    const startY = padding + (index * (frameH + frameGap));
-    ctx.drawImage(frameCanvas, padding, startY, frameW, frameH);
+  photoFrames.forEach((frame, idx) => {
+    const startY = padding + (idx * (frameH + frameGap));
+    ctx.drawImage(frame, padding, startY, frameW, frameH);
   });
 
-  /* Footer / Branding Photobooth di Paling Bawah */
+  /* Branding / Footer */
   const footerY = stripH - footerH + 20;
-  ctx.fillStyle = "#111111";
-  ctx.font = "bold 32px Arial";
-  ctx.textAlign = "center";
+  ctx.fillStyle = "#111111"; ctx.font = "bold 32px Arial"; ctx.textAlign = "center";
   ctx.fillText("MINI LDR STUDIO", stripW / 2, footerY + 30);
 
-  ctx.fillStyle = "#666666";
-  ctx.font = "18px Arial";
+  ctx.fillStyle = "#666666"; ctx.font = "18px Arial";
   const today = new Date().toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' });
   ctx.fillText(today + " • Room: " + roomCode, stripW / 2, footerY + 65);
 
   if(currentPrompt){
-    ctx.fillStyle = "#e53935";
-    ctx.font = "italic 16px Arial";
+    ctx.fillStyle = "#e53935"; ctx.font = "italic 16px Arial";
     ctx.fillText("AI Theme: " + currentPrompt.slice(0, 45), stripW / 2, footerY + 95);
   }
 
-  /* Simpan Hasil Strip */
   const stripDataURL = stripCanvas.toDataURL("image/jpeg", 0.95);
 
-  // Buat Kartu Galeri
   const card = document.createElement("div");
   card.className = "photoCard";
-
   const img = document.createElement("img");
   img.src = stripDataURL;
 
   const actions = document.createElement("div");
   actions.className = "photoActions";
 
-  /* Tombol Download Kertas Photobooth */
   const downloadBtn = document.createElement("button");
-  downloadBtn.className = "downloadBtn";
-  downloadBtn.innerText = "💾 DOWNLOAD STRIP PHOTOBOOTH";
-  downloadBtn.onclick = function(){
-    const link = document.createElement("a");
-    link.href = stripDataURL;
-    link.download = `Photobooth_LDR_${roomCode}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  downloadBtn.className = "downloadBtn"; downloadBtn.innerText = "💾 DOWNLOAD STRIP PHOTOBOOTH";
+  downloadBtn.onclick = () => {
+    const a = document.createElement("a"); a.href = stripDataURL; a.download = `Photobooth_LDR_${roomCode}.jpg`;
+    a.click();
   };
 
-  /* Tombol Cetak */
   const printBtn = document.createElement("button");
-  printBtn.className = "printBtn";
-  printBtn.innerText = "🖨️ CETAK STRIP";
-  printBtn.onclick = function(){
+  printBtn.className = "printBtn"; printBtn.innerText = "🖨️ CETAK STRIP";
+  printBtn.onclick = () => {
     printSheet.innerHTML = `<img class="printStripPhoto" src="${stripDataURL}">`;
     window.print();
   };
 
-  actions.appendChild(downloadBtn);
-  actions.appendChild(printBtn);
-
-  card.appendChild(img);
-  card.appendChild(actions);
+  actions.appendChild(downloadBtn); actions.appendChild(printBtn);
+  card.appendChild(img); card.appendChild(actions);
   gallery.appendChild(card);
 }
 
-/* Reset Ulang Foto */
-resetBtn.onclick = function(){
-  if(photoFrames.length === 0) return;
-  if(confirm("Hapus semua pose dan buat Photobooth baru?")){
+resetBtn.onclick = () => {
+  if(photoFrames.length > 0 && confirm("Hapus semua pose?")){
     photoFrames = [];
     renderPhotoboothStrip();
   }

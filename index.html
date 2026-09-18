@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio</title>
+  <title>Mini LDR Studio - Photobooth Edition</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *{box-sizing:border-box}
@@ -52,14 +52,14 @@
     .galleryTitle h2{ font-size:17px; margin:0 }
     #photoCount{ font-size:12px; color:#aaa }
     .gallery{ display:flex; flex-direction:column; gap:12px }
-    .photoCard{ background:#151515; border-radius:12px; padding:10px; border:1px solid #292929 }
-    .photoNumber{ font-size:12px; color:#aaa; margin-bottom:7px }
-    .photoCard img{ display:block; width:100%; max-width:500px; margin:auto; border-radius:7px }
-    .photoActions{ display:flex; justify-content:center; gap:5px; margin-top:7px; flex-wrap:wrap }
+    .photoCard{ background:#151515; border-radius:12px; padding:10px; border:1px solid #292929; text-align:center }
+    .photoNumber{ font-size:12px; color:#aaa; margin-bottom:7px; text-align:left }
+    .photoCard img{ display:block; width:100%; max-width:280px; margin:auto; border-radius:7px; border:2px solid #333 }
+    .photoActions{ display:flex; justify-content:center; gap:5px; margin-top:10px; flex-wrap:wrap }
     .deleteBtn{ background:#b91c1c }
     .downloadBtn{ background:#2563eb }
     .printBtn{ background:#16a34a }
-    #printAllBtn{ width:100%; background:#fff; color:#111; font-size:15px; padding:13px }
+    #renderStripBtn{ width:100%; background:#fff; color:#111; font-size:15px; padding:13px }
     .emptyGallery{ background:#111; border:1px dashed #444; border-radius:10px; padding:20px; color:#777; font-size:13px; text-align:center }
 
     /* ========================= COUNTDOWN ========================= */
@@ -81,40 +81,24 @@
     .fx-moon{filter:grayscale(.3) brightness(.9) contrast(1.25)}
     .fx-dramatic{filter:contrast(1.45) saturate(1.15) brightness(.88)}
 
-    /* ========================= MOBILE ========================= */
-    @media(max-width:500px){
-      main{ padding:7px }
-      h1{ font-size:19px }
-      button{ font-size:12px; padding:10px 11px }
-      .photoCard img{ width:100% }
-    }
-
-    /* ========================= PRINT (LAYOUT VERTIKAL/BERJEJER BERURUTAN) ========================= */
+    /* ========================= PRINT PHOTOBOOTH STRIP ========================= */
     #printSheet { display: none; }
     @media print{
       body{ background:#fff; color:#000 }
       body > *{ display:none!important }
       #printSheet{ 
         display:flex!important; 
-        flex-direction:column; 
-        align-items:center;
+        justify-content:center;
+        align-items:flex-start;
         width:100%; 
         padding:5mm; 
-        box-sizing:border-box;
       }
-      .printPaper{ 
+      .printStripPhoto{ 
+        display:block; 
         width:100%; 
-        max-width:160mm; 
-        margin-bottom:10mm; 
-        background:#fff; 
-        padding:5mm; 
-        border:1px solid #ddd;
-        box-shadow:none;
-        page-break-inside: avoid;
+        max-width:80mm; /* Ukuran standar kertas Photobooth Strip */
+        height:auto;
       }
-      .printPhoto{ display:block; width:100%; aspect-ratio:1/1; object-fit:contain; background:#000 }
-      .printCaption{ font-family:Arial,sans-serif; text-align:center; color:#222; font-size:16px; font-weight:bold; margin-top:5mm }
-      .printSub{ text-align:center; color:#777; font-size:10px; margin-top:2mm }
       @page{ size:A4 portrait; margin:10mm }
     }
   </style>
@@ -123,7 +107,7 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • 2 HP</p>
+  <p>Studio foto jarak jauh • Photobooth Strip Edition</p>
 
   <div id="setup">
     <button id="buatBtn">BUAT ROOM</button>
@@ -149,7 +133,7 @@
   </div>
 
   <div class="controls">
-    <button id="fotoBtn" class="hidden">📸 FOTO BERSAMA</button>
+    <button id="fotoBtn" class="hidden">📸 JEPET FOTO (MAX 4)</button>
   </div>
 
   <div id="effectArea" class="hidden">
@@ -181,12 +165,14 @@
 
   <div id="galleryArea" class="hidden">
     <div class="galleryTitle">
-      <h2>🖼️ Hasil Foto</h2>
-      <span id="photoCount">0 / 5</span>
+      <h2>🎞️ Photobooth Strip Hasil</h2>
+      <span id="photoCount">0 Pose Ambil</span>
     </div>
+
+    <!-- Tempat Preview Photobooth Strip -->
     <div id="gallery" class="gallery"></div>
     <br>
-    <button id="printAllBtn">🖨️ CETAK SEMUA FOTO</button>
+    <button id="resetBtn" style="background:#444;">🔄 RESET/AMBIL ULANG</button>
   </div>
 </main>
 
@@ -211,8 +197,9 @@ let currentPrompt = "";
 let capturing = false;
 let pendingCandidates = [];
 
-const MAX_PHOTOS = 5;
-let photos = [];
+/* Maksimal frame dalam 1 kertas Photobooth Strip (Rekomendasi: 3 atau 4 pose) */
+const MAX_PHOTOS = 4;
+let photoFrames = []; // Menyimpan canvas individual tiap jepretan
 
 /* ================================================== ELEMENT ================================================== */
 const setup = document.getElementById("setup");
@@ -232,7 +219,7 @@ const aiPreview = document.getElementById("aiPreview");
 const galleryArea = document.getElementById("galleryArea");
 const gallery = document.getElementById("gallery");
 const photoCount = document.getElementById("photoCount");
-const printAllBtn = document.getElementById("printAllBtn");
+const resetBtn = document.getElementById("resetBtn");
 const printSheet = document.getElementById("printSheet");
 
 /* ================================================== KODE ROOM ================================================== */
@@ -305,7 +292,6 @@ async function masukRoom(){
   });
 
   channel.subscribe(async function(state, error){
-    console.log("Supabase:", state, error);
     if(state === "SUBSCRIBED"){
       status.innerText = "🟢 Room terhubung. Menunggu pasangan...";
       await kirim({ type: "hello" });
@@ -340,12 +326,10 @@ function buatPeer(){
   remoteStream = new MediaStream();
   remoteVideo.srcObject = remoteStream;
 
-  /* LOCAL */
   localStream.getTracks().forEach(track => {
     peer.addTrack(track, localStream);
   });
 
-  /* REMOTE */
   peer.ontrack = event => {
     if(event.streams && event.streams[0]){
       event.streams[0].getTracks().forEach(track => {
@@ -356,14 +340,12 @@ function buatPeer(){
     }
   };
 
-  /* ICE */
   peer.onicecandidate = async event => {
     if(event.candidate){
       await kirim({ type: "candidate", candidate: event.candidate });
     }
   };
 
-  /* STATUS */
   peer.onconnectionstatechange = () => {
     const state = peer.connectionState;
     if(state === "connected"){
@@ -395,13 +377,11 @@ async function kirim(data){
 /* ================================================== SIGNAL ================================================== */
 async function prosesSignal(data){
   try{
-    /* HOST */
     if(data.type === "hello" && role === "host"){
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
       await kirim({ type: "offer", sdp: peer.localDescription });
     }
-    /* GUEST */
     else if(data.type === "offer" && role === "guest"){
       await peer.setRemoteDescription(data.sdp);
       for(const candidate of pendingCandidates){
@@ -412,7 +392,6 @@ async function prosesSignal(data){
       await peer.setLocalDescription(answer);
       await kirim({ type: "answer", sdp: peer.localDescription });
     }
-    /* HOST ANSWER */
     else if(data.type === "answer" && role === "host"){
       await peer.setRemoteDescription(data.sdp);
       for(const candidate of pendingCandidates){
@@ -420,15 +399,13 @@ async function prosesSignal(data){
       }
       pendingCandidates = [];
     }
-    /* ICE */
     else if(data.type === "candidate"){
       if(peer.remoteDescription && peer.remoteDescription.type){
-        try{ await peer.addIceCandidate(data.candidate); }catch(e){ console.warn("ICE gagal:", e); }
+        try{ await peer.addIceCandidate(data.candidate); }catch(e){}
       }else{
         pendingCandidates.push(data.candidate);
       }
     }
-    /* FOTO */
     else if(data.type === "photo"){
       if(!capturing){
         capturing = true;
@@ -443,8 +420,8 @@ async function prosesSignal(data){
 
 /* ================================================== FOTO ================================================== */
 fotoBtn.onclick = async function(){
-  if(photos.length >= MAX_PHOTOS){
-    alert("📸 Foto sudah penuh!\n\nHapus dulu salah satu foto sebelum memotret lagi.");
+  if(photoFrames.length >= MAX_PHOTOS){
+    alert("📸 Photobooth sudah penuh (Maksimal 4 pose)!\n\nKlik Reset jika ingin mengulang dari awal.");
     return;
   }
   if(capturing) return;
@@ -458,10 +435,6 @@ fotoBtn.onclick = async function(){
 
 /* ================================================== COUNTDOWN ================================================== */
 async function ambilFoto(){
-  if(photos.length >= MAX_PHOTOS){
-    alert("📸 Slot foto sudah penuh.\nHapus salah satu foto dulu.");
-    return;
-  }
   countdown.classList.remove("hidden");
   for(let i = 3; i >= 1; i--){
     countdown.innerText = i;
@@ -470,10 +443,10 @@ async function ambilFoto(){
   countdown.innerText = "📸";
   await tunggu(300);
   countdown.classList.add("hidden");
-  buatFoto();
+  
+  simpanFrame();
 }
 
-/* ================================================== TIMER ================================================== */
 function tunggu(ms){
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -508,50 +481,32 @@ function escapeHTML(text){
     .replace(/'/g,"&#039;");
 }
 
-/* ================================================== BUAT FOTO ================================================== */
-function buatFoto(){
-  if(photos.length >= MAX_PHOTOS){
-    alert("📸 Maksimal 5 foto.\nHapus salah satu foto dulu.");
-    return;
-  }
-  const W = 900;
-  const H = 900;
+/* ================================================== SIMPAN FRAME SATUAN ================================================== */
+function simpanFrame(){
+  const W = 800;
+  const H = 450; // Perbandingan landscape per frame pose
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  /* Background */
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, W, H);
 
-  /* Dua foto 3:4 */
   const photoW = W / 2;
-  const photoH = 600;
-  const photoY = (H - photoH) / 2;
+  const photoH = H;
 
-  /* KIRI */
-  gambarVideo(ctx, localVideo, 0, photoY, photoW, photoH);
-  /* KANAN */
-  gambarVideo(ctx, remoteVideo, photoW, photoY, photoW, photoH);
+  /* KIRI (Kamu) */
+  gambarVideo(ctx, localVideo, 0, 0, photoW, photoH);
+  /* KANAN (Pasangan) */
+  gambarVideo(ctx, remoteVideo, photoW, 0, photoW, photoH);
 
-  /* Garis Pemisah */
+  /* Garis Pemisah Tengah */
   ctx.fillStyle = "#fff";
-  ctx.fillRect(photoW - 1, photoY, 2, photoH);
+  ctx.fillRect(photoW - 1, 0, 2, photoH);
 
-  /* AI Tag */
-  if(currentPrompt){
-    ctx.fillStyle = "rgba(0,0,0,.65)";
-    ctx.fillRect(0, H - 35, W, 35);
-    ctx.fillStyle = "#fff";
-    ctx.font = "11px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("AI: " + currentPrompt.slice(0, 100), W / 2, H - 13);
-  }
-
-  const dataURL = canvas.toDataURL("image/jpeg", 0.92);
-  photos.unshift(dataURL);
-  renderGallery();
+  photoFrames.push(canvas);
+  renderPhotoboothStrip();
 }
 
 /* ================================================== GAMBAR VIDEO ================================================== */
@@ -583,112 +538,112 @@ function gambarVideo(ctx, video, x, y, w, h){
   ctx.filter = "none";
 }
 
-/* ================================================== RENDER GALERI ================================================== */
-function renderGallery(){
+/* ================================================== GENERATE STRIP VERTIKAL (PHOTOBOOTH) ================================================== */
+function renderPhotoboothStrip(){
   gallery.innerHTML = "";
-  photoCount.innerText = photos.length + " / " + MAX_PHOTOS;
+  photoCount.innerText = photoFrames.length + " / " + MAX_PHOTOS + " Pose";
 
-  if(photos.length === 0){
-    gallery.innerHTML = '<div class="emptyGallery">Belum ada foto.<br>Foto bersama akan muncul di sini.</div>';
+  if(photoFrames.length === 0){
+    gallery.innerHTML = '<div class="emptyGallery">Belum ada foto.<br>Klik tombol foto untuk mulai mengambil pose.</div>';
     galleryArea.classList.remove("hidden");
     return;
   }
 
   galleryArea.classList.remove("hidden");
 
-  photos.forEach((dataURL, index) => {
-    const card = document.createElement("div");
-    card.className = "photoCard";
+  // Ukuran dasar Kertas Strip Photobooth
+  const padding = 30;
+  const frameGap = 20;
+  const frameW = 800;
+  const frameH = 450;
+  const footerH = 140; // Space Logo / Teks bawah Photobooth
 
-    const number = document.createElement("div");
-    number.className = "photoNumber";
-    number.innerText = "Foto #" + (index + 1);
+  const stripW = frameW + (padding * 2);
+  const stripH = (frameH * photoFrames.length) + (frameGap * (photoFrames.length - 1)) + (padding * 2) + footerH;
 
-    const img = document.createElement("img");
-    img.src = dataURL;
+  const stripCanvas = document.createElement("canvas");
+  stripCanvas.width = stripW;
+  stripCanvas.height = stripH;
+  const ctx = stripCanvas.getContext("2d");
 
-    const actions = document.createElement("div");
-    actions.className = "photoActions";
+  /* Background Kertas Photobooth (Warna Putih Khas Studio) */
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, stripW, stripH);
 
-    /* TOMBOL HAPUS */
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "deleteBtn";
-    deleteBtn.innerText = "🗑️ HAPUS";
-    deleteBtn.onclick = function(){
-      if(confirm("Hapus foto ini?")){
-        photos.splice(index, 1);
-        renderGallery();
-      }
-    };
-
-    /* TOMBOL DOWNLOAD (UNDUH) */
-    const downloadBtn = document.createElement("button");
-    downloadBtn.className = "downloadBtn";
-    downloadBtn.innerText = "💾 UNDUH";
-    downloadBtn.onclick = function(){
-      downloadSingle(dataURL, index + 1);
-    };
-
-    /* TOMBOL CETAK */
-    const printBtn = document.createElement("button");
-    printBtn.className = "printBtn";
-    printBtn.innerText = "🖨️ CETAK";
-    printBtn.onclick = function(){
-      printSingle(dataURL, index + 1);
-    };
-
-    actions.appendChild(deleteBtn);
-    actions.appendChild(downloadBtn);
-    actions.appendChild(printBtn);
-
-    card.appendChild(number);
-    card.appendChild(img);
-    card.appendChild(actions);
-
-    gallery.appendChild(card);
+  /* Menumpuk foto dari ATAS ke BAWAH */
+  photoFrames.forEach((frameCanvas, index) => {
+    const startY = padding + (index * (frameH + frameGap));
+    ctx.drawImage(frameCanvas, padding, startY, frameW, frameH);
   });
-}
 
-/* ================================================== UNDUH SATU FOTO ================================================== */
-function downloadSingle(dataURL, number){
-  const link = document.createElement("a");
-  link.href = dataURL;
-  link.download = `LDR_Studio_Foto_${number}.jpg`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+  /* Footer / Branding Photobooth di Paling Bawah */
+  const footerY = stripH - footerH + 20;
+  ctx.fillStyle = "#111111";
+  ctx.font = "bold 32px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("MINI LDR STUDIO", stripW / 2, footerY + 30);
 
-/* ================================================== CETAK SATU FOTO ================================================== */
-function printSingle(dataURL, number){
-  printSheet.innerHTML = `
-    <div class="printPaper">
-      <img class="printPhoto" src="${dataURL}">
-      <div class="printCaption">Mini LDR Studio</div>
-      <div class="printSub">Foto #${number}</div>
-    </div>
-  `;
-  window.print();
-}
+  ctx.fillStyle = "#666666";
+  ctx.font = "18px Arial";
+  const today = new Date().toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' });
+  ctx.fillText(today + " • Room: " + roomCode, stripW / 2, footerY + 65);
 
-/* ================================================== CETAK SEMUA (BERJEJER KE BAWAH) ================================================== */
-printAllBtn.onclick = function(){
-  if(photos.length === 0){
-    alert("Belum ada foto untuk dicetak.");
-    return;
+  if(currentPrompt){
+    ctx.fillStyle = "#e53935";
+    ctx.font = "italic 16px Arial";
+    ctx.fillText("AI Theme: " + currentPrompt.slice(0, 45), stripW / 2, footerY + 95);
   }
-  let html = "";
-  photos.forEach((dataURL, index) => {
-    html += `
-      <div class="printPaper">
-        <img class="printPhoto" src="${dataURL}">
-        <div class="printCaption">Mini LDR Studio</div>
-        <div class="printSub">Foto #${index + 1}</div>
-      </div>
-    `;
-  });
-  printSheet.innerHTML = html;
-  window.print();
+
+  /* Simpan Hasil Strip */
+  const stripDataURL = stripCanvas.toDataURL("image/jpeg", 0.95);
+
+  // Buat Kartu Galeri
+  const card = document.createElement("div");
+  card.className = "photoCard";
+
+  const img = document.createElement("img");
+  img.src = stripDataURL;
+
+  const actions = document.createElement("div");
+  actions.className = "photoActions";
+
+  /* Tombol Download Kertas Photobooth */
+  const downloadBtn = document.createElement("button");
+  downloadBtn.className = "downloadBtn";
+  downloadBtn.innerText = "💾 DOWNLOAD STRIP PHOTOBOOTH";
+  downloadBtn.onclick = function(){
+    const link = document.createElement("a");
+    link.href = stripDataURL;
+    link.download = `Photobooth_LDR_${roomCode}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  /* Tombol Cetak */
+  const printBtn = document.createElement("button");
+  printBtn.className = "printBtn";
+  printBtn.innerText = "🖨️ CETAK STRIP";
+  printBtn.onclick = function(){
+    printSheet.innerHTML = `<img class="printStripPhoto" src="${stripDataURL}">`;
+    window.print();
+  };
+
+  actions.appendChild(downloadBtn);
+  actions.appendChild(printBtn);
+
+  card.appendChild(img);
+  card.appendChild(actions);
+  gallery.appendChild(card);
+}
+
+/* Reset Ulang Foto */
+resetBtn.onclick = function(){
+  if(photoFrames.length === 0) return;
+  if(confirm("Hapus semua pose dan buat Photobooth baru?")){
+    photoFrames = [];
+    renderPhotoboothStrip();
+  }
 };
 </script>
 

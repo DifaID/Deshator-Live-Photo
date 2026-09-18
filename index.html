@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio - Selfie Edition (Fixed Zoom)</title>
+  <title>Mini LDR Studio - Fixed Video Stream</title>
   
   <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,15 +23,15 @@
     #roomInfo{ margin:8px; font-size:16px }
     .hidden{ display:none!important }
 
-    /* ========================= KAMERA DISPLAY (FIXED NO-ZOOM) ========================= */
+    /* ========================= KAMERA DISPLAY ========================= */
     .cameras{ display:grid; grid-template-columns:1fr 1fr; gap:5px }
-    .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#000; overflow:hidden; border-radius:10px }
+    .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#111; overflow:hidden; border-radius:10px }
     
-    /* object-fit: contain murni menampilkan 100% tangkapan kamera tanpa dipotong/zoom */
     .camera video{ 
       position:absolute; inset:0; width:100%; height:100%; 
       object-fit: contain; 
       transform: scaleX(-1); 
+      background: #000;
     }
 
     .label{ position:absolute; top:7px; left:7px; z-index:5; background:#000b; padding:5px 8px; border-radius:6px; font-size:11px }
@@ -102,7 +102,7 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • Kamera Depan (Wide Balance)</p>
+  <p>Studio foto jarak jauh • Camera Stream Fixed</p>
 
   <div id="setup">
     <button id="buatBtn">BUAT ROOM (HOST)</button>
@@ -246,7 +246,6 @@ async function masukRoom(){
   status.innerText = "Meminta izin kamera depan...";
 
   try{
-    /* MENGGUNAKAN ANGLE RESOLUSI FLEKSIBEL AGAR TIDAK TER-CROP/ZOOM */
     localStream = await navigator.mediaDevices.getUserMedia({
       video: { 
         facingMode: "user",
@@ -264,6 +263,7 @@ async function masukRoom(){
 
   remoteStream = new MediaStream();
 
+  /* MENCEGAH FLICKER / BLINK PADA VIDEO PASANGAN */
   if (role === "host") {
     videoLeft.srcObject = localStream;
     labelLeft.innerText = "KAMU (HOST)";
@@ -281,6 +281,11 @@ async function masukRoom(){
 
     fotoBtn.classList.add("hidden");
   }
+
+  // Force Play saat video terhubung
+  [videoLeft, videoRight].forEach(vid => {
+    vid.onloadedmetadata = () => vid.play().catch(e => console.log("Play auto error:", e));
+  });
 
   cameras.classList.remove("hidden");
   effectArea.classList.remove("hidden");
@@ -303,24 +308,43 @@ copyRoom.onclick = async () => {
   catch(e) { prompt("Salin kode:", roomCode); }
 };
 
-/* ================================================== WEBRTC ================================================== */
+/* ================================================== WEBRTC FIXED ================================================== */
 function buatPeer(){
-  peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+  peer = new RTCPeerConnection({ 
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" }
+    ] 
+  });
 
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+
   peer.ontrack = event => {
-    if(event.streams && event.streams[0]){
+    if (event.streams && event.streams[0]) {
       event.streams[0].getTracks().forEach(track => {
-        if(!remoteStream.getTracks().includes(track)) remoteStream.addTrack(track);
+        // Cek jika track belum ditambahkan untuk menghindari restart/blink stream
+        const existingTrack = remoteStream.getTracks().find(t => t.id === track.id);
+        if (!existingTrack) {
+          remoteStream.addTrack(track);
+        }
       });
     }
   };
+
   peer.onicecandidate = async event => {
     if(event.candidate) await kirim({ type: "candidate", candidate: event.candidate });
   };
+
   peer.onconnectionstatechange = () => {
-    if(peer.connectionState === "connected") status.innerText = "🟢 PASANGAN TERHUBUNG";
-    else if(peer.connectionState === "connecting") status.innerText = "🟡 Menghubungkan kamera...";
+    if(peer.connectionState === "connected") {
+      status.innerText = "🟢 PASANGAN TERHUBUNG";
+      // Memastikan video dimainkan ulang saat jaringan terhubung penuh
+      if(role === "host") videoRight.play().catch(()=>{});
+      else videoLeft.play().catch(()=>{});
+    } else if(peer.connectionState === "connecting") {
+      status.innerText = "🟡 Menghubungkan kamera...";
+    }
   };
 }
 
@@ -405,7 +429,7 @@ document.getElementById("aiBtn").onclick = function(){
 
 function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ================================================== DRAWING CANVAS (FIT ADAPTIF) ================================================== */
+/* ================================================== DRAWING CANVAS ================================================== */
 function drawCoverImage(ctx, img, x, y, w, h) {
   const imgW = img.videoWidth || img.width;
   const imgH = img.videoHeight || img.height;

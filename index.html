@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mini LDR Studio V3</title>
+<title>Mini LDR Studio V4</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -24,17 +24,10 @@ margin:auto;
 padding:10px;
 }
 
-h1{
-font-size:22px;
-margin:7px 0;
-}
+h1{font-size:22px;margin:7px 0}
+p{color:#bbb;margin:5px}
 
-p{
-color:#bbb;
-margin:5px;
-}
-
-button,select,input{
+button,input{
 border:0;
 border-radius:9px;
 padding:11px 13px;
@@ -48,13 +41,9 @@ font-weight:bold;
 margin:4px;
 }
 
-button:active{
-transform:scale(.96);
-}
+button:active{transform:scale(.96)}
 
-input{
-text-align:center;
-}
+input{text-align:center}
 
 #kodeInput{
 width:140px;
@@ -72,14 +61,10 @@ margin:8px;
 font-size:16px;
 }
 
-.hidden{
-display:none!important;
-}
+.hidden{display:none!important}
 
 
-/* =========================
-   KAMERA
-========================= */
+/* KAMERA */
 
 .cameras{
 display:grid;
@@ -99,19 +84,9 @@ border-radius:10px;
 .camera video{
 width:100%;
 height:100%;
-
-/*
-  Seperti kamera HP.
-  Tidak mengecil dan tidak
-  membuat kotak hitam.
-*/
 object-fit:cover;
-
-/*
-  PENTING:
-  tidak ada scaleX(-1)
-*/
-transform:none;
+background:#000;
+transform:none!important;
 }
 
 .label{
@@ -126,27 +101,19 @@ font-size:11px;
 }
 
 
-/* =========================
-   KONTROL
-========================= */
+/* KONTROL */
 
-.controls{
-margin-top:8px;
-}
+.controls{margin-top:8px}
 
 #fotoBtn{
 font-size:16px;
 padding:13px 22px;
 }
 
-#copyRoom{
-background:#333;
-}
+#copyRoom{background:#333}
 
 
-/* =========================
-   EFEK
-========================= */
+/* EFEK */
 
 .effects{
 display:flex;
@@ -172,9 +139,7 @@ color:#aaa;
 }
 
 
-/* =========================
-   PROMPT AI
-========================= */
+/* AI */
 
 .ai{
 background:#151515;
@@ -197,9 +162,7 @@ color:white;
 outline:none;
 }
 
-#aiPrompt::placeholder{
-color:#777;
-}
+#aiPrompt::placeholder{color:#777}
 
 #aiPreview{
 margin-top:7px;
@@ -209,9 +172,7 @@ line-height:1.4;
 }
 
 
-/* =========================
-   HASIL
-========================= */
+/* HASIL */
 
 #hasil{
 display:block;
@@ -232,9 +193,7 @@ font-weight:bold;
 }
 
 
-/* =========================
-   COUNTDOWN
-========================= */
+/* COUNTDOWN */
 
 #countdown{
 position:fixed;
@@ -249,9 +208,7 @@ font-weight:bold;
 }
 
 
-/* =========================
-   FILTER EFEK
-========================= */
+/* FILTER */
 
 .fx-normal{filter:none}
 .fx-vivid{filter:saturate(1.5) contrast(1.08)}
@@ -269,25 +226,12 @@ font-weight:bold;
 .fx-dramatic{filter:contrast(1.45) saturate(1.15) brightness(.88)}
 
 
-/* =========================
-   MOBILE
-========================= */
+/* MOBILE */
 
 @media(max-width:500px){
-
-main{
-padding:7px;
-}
-
-h1{
-font-size:19px;
-}
-
-button{
-font-size:12px;
-padding:10px 11px;
-}
-
+main{padding:7px}
+h1{font-size:19px}
+button{font-size:12px;padding:10px 11px}
 }
 </style>
 </head>
@@ -297,19 +241,11 @@ padding:10px 11px;
 <main>
 
 <h1>📸 Mini LDR Studio</h1>
-
 <p>Studio foto jarak jauh • 2 HP</p>
-
-
-<!-- =========================
-     ROOM
-========================= -->
 
 <div id="setup">
 
-<button id="buatBtn">
-BUAT ROOM
-</button>
+<button id="buatBtn">BUAT ROOM</button>
 
 <br>
 
@@ -319,36 +255,24 @@ maxlength="6"
 placeholder="KODE ROOM"
 >
 
-<button id="gabungBtn">
-GABUNG
-</button>
+<button id="gabungBtn">GABUNG</button>
 
 </div>
 
-
 <div id="roomInfo"></div>
 
-<button
-id="copyRoom"
-class="hidden"
->
+<button id="copyRoom" class="hidden">
 SALIN KODE
 </button>
-
 
 <div id="status">
 Belum terhubung
 </div>
 
 
-<!-- =========================
-     KAMERA
-========================= -->
+<!-- KAMERA -->
 
-<div
-id="cameras"
-class="cameras hidden"
->
+<div id="cameras" class="cameras hidden">
 
 <div class="camera">
 
@@ -359,12 +283,9 @@ playsinline
 muted
 ></video>
 
-<div class="label">
-KAMU
-</div>
+<div class="label">KAMU</div>
 
 </div>
-
 
 <div class="camera">
 
@@ -374,23 +295,16 @@ autoplay
 playsinline
 ></video>
 
-<div class="label">
-PASANGAN
-</div>
+<div class="label">PASANGAN</div>
 
 </div>
 
 </div>
 
 
-<!-- =========================
-     EFEK
-========================= -->
+<!-- EFEK -->
 
-<div
-id="effectArea"
-class="hidden"
->
+<div id="effectArea" class="hidden">
 
 <div id="effectName">
 Efek: Normal
@@ -398,104 +312,49 @@ Efek: Normal
 
 <div class="effects">
 
-<button data-fx="fx-normal">
-Normal
-</button>
-
-<button data-fx="fx-vivid">
-Vivid
-</button>
-
-<button data-fx="fx-warm">
-Warm
-</button>
-
-<button data-fx="fx-cool">
-Cool
-</button>
-
-<button data-fx="fx-cinema">
-Cinema
-</button>
-
-<button data-fx="fx-vintage">
-Vintage
-</button>
-
-<button data-fx="fx-bw">
-B&W
-</button>
-
-<button data-fx="fx-fade">
-Fade
-</button>
-
-<button data-fx="fx-dream">
-Dream
-</button>
-
-<button data-fx="fx-night">
-Night
-</button>
-
-<button data-fx="fx-sunset">
-Sunset
-</button>
-
-<button data-fx="fx-rose">
-Rose
-</button>
-
-<button data-fx="fx-moon">
-Moon
-</button>
-
-<button data-fx="fx-dramatic">
-Dramatic
-</button>
+<button data-fx="fx-normal">Normal</button>
+<button data-fx="fx-vivid">Vivid</button>
+<button data-fx="fx-warm">Warm</button>
+<button data-fx="fx-cool">Cool</button>
+<button data-fx="fx-cinema">Cinema</button>
+<button data-fx="fx-vintage">Vintage</button>
+<button data-fx="fx-bw">B&W</button>
+<button data-fx="fx-fade">Fade</button>
+<button data-fx="fx-dream">Dream</button>
+<button data-fx="fx-night">Night</button>
+<button data-fx="fx-sunset">Sunset</button>
+<button data-fx="fx-rose">Rose</button>
+<button data-fx="fx-moon">Moon</button>
+<button data-fx="fx-dramatic">Dramatic</button>
 
 </div>
 
 </div>
 
 
-<!-- =========================
-     FOTO
-========================= -->
+<!-- FOTO -->
 
 <div class="controls">
 
-<button
-id="fotoBtn"
-class="hidden"
->
+<button id="fotoBtn" class="hidden">
 📸 FOTO BERSAMA
 </button>
 
 </div>
 
 
-<!-- =========================
-     AI PROMPT
-========================= -->
+<!-- AI -->
 
-<div
-id="aiArea"
-class="ai hidden"
->
+<div id="aiArea" class="ai hidden">
 
-<h3>
-🤖 Prompt AI Background
-</h3>
+<h3>🤖 Prompt AI Background</h3>
 
 <input
 id="aiPrompt"
 placeholder="Contoh: rooftop kota Jakarta saat sunset, cinematic..."
 >
 
-<button
-id="aiBtn"
->
+<button id="aiBtn">
 ✨ TERAPKAN PROMPT
 </button>
 
@@ -506,14 +365,9 @@ Prompt belum digunakan.
 </div>
 
 
-<!-- =========================
-     HASIL
-========================= -->
+<!-- HASIL -->
 
-<canvas
-id="hasil"
-class="hidden"
-></canvas>
+<canvas id="hasil" class="hidden"></canvas>
 
 <a
 id="download"
@@ -526,14 +380,7 @@ download="mini-ldr-studio.jpg"
 </main>
 
 
-<!-- =========================
-     COUNTDOWN
-========================= -->
-
-<div
-id="countdown"
-class="hidden"
->
+<div id="countdown" class="hidden">
 3
 </div>
 
@@ -544,14 +391,13 @@ class="hidden"
    SUPABASE
 ================================================== */
 
-const SUPABASE_URL =
+const SUPABASE_URL=
 "https://fdiurlgmbhzzoxtcnpmr.supabase.co";
 
-const SUPABASE_KEY =
+const SUPABASE_KEY=
 "sb_publishable_RVQ0mdl1PO17U_NanI-bGA_ZpoE4Zii";
 
-
-const supabaseClient =
+const supabaseClient=
 supabase.createClient(
 SUPABASE_URL,
 SUPABASE_KEY
@@ -568,8 +414,12 @@ let channel=null;
 let localStream=null;
 let peer=null;
 let remoteStream=null;
+
 let currentEffect="fx-normal";
 let currentPrompt="";
+
+let capturing=false;
+let pendingCandidates=[];
 
 
 /* ==================================================
@@ -655,13 +505,10 @@ return kode;
    BUAT ROOM
 ================================================== */
 
-document
-.getElementById("buatBtn")
-.onclick=
+document.getElementById("buatBtn").onclick=
 async function(){
 
 role="host";
-
 roomCode=buatKode();
 
 await masukRoom();
@@ -673,9 +520,7 @@ await masukRoom();
    GABUNG ROOM
 ================================================== */
 
-document
-.getElementById("gabungBtn")
-.onclick=
+document.getElementById("gabungBtn").onclick=
 async function(){
 
 const kode=
@@ -685,20 +530,14 @@ document
 .trim()
 .toUpperCase();
 
-
 if(kode.length!==6){
 
-alert(
-"Kode room harus 6 karakter."
-);
-
+alert("Kode room harus 6 karakter.");
 return;
 
 }
 
-
 role="guest";
-
 roomCode=kode;
 
 await masukRoom();
@@ -712,16 +551,12 @@ await masukRoom();
 
 async function masukRoom(){
 
-setup.classList.add(
-"hidden"
-);
+setup.classList.add("hidden");
 
 roomInfo.innerHTML=
 "ROOM: <b>"+roomCode+"</b>";
 
-copyRoom.classList.remove(
-"hidden"
-);
+copyRoom.classList.remove("hidden");
 
 status.innerText=
 "Meminta izin kamera...";
@@ -730,14 +565,21 @@ status.innerText=
 try{
 
 localStream=
-await navigator
-.mediaDevices
-.getUserMedia({
+await navigator.mediaDevices.getUserMedia({
 
 video:{
-facingMode:"environment",
-width:{ideal:1080},
-height:{ideal:1920}
+facingMode:{
+ideal:"user"
+},
+width:{
+ideal:1080
+},
+height:{
+ideal:1920
+},
+aspectRatio:{
+ideal:9/16
+}
 },
 
 audio:false
@@ -746,12 +588,15 @@ audio:false
 
 
 /*
-  Tidak menggunakan mirror.
+ Kamera depan.
+ Tidak mirror.
 */
 
 localVideo.srcObject=
 localStream;
 
+localVideo.style.transform=
+"none";
 
 }catch(error){
 
@@ -769,17 +614,9 @@ return;
 }
 
 
-cameras.classList.remove(
-"hidden"
-);
-
-effectArea.classList.remove(
-"hidden"
-);
-
-aiArea.classList.remove(
-"hidden"
-);
+cameras.classList.remove("hidden");
+effectArea.classList.remove("hidden");
+aiArea.classList.remove("hidden");
 
 
 /* WEBRTC */
@@ -824,33 +661,20 @@ state,
 error
 );
 
-
 if(state==="SUBSCRIBED"){
 
 status.innerText=
 "🟢 Room terhubung. Menunggu pasangan...";
 
-
 await kirim({
 type:"hello"
 });
 
-
-/*
-  SEKARANG KEDUA PIHAK
-  boleh memotret.
-*/
-
-fotoBtn.classList.remove(
-"hidden"
-);
+fotoBtn.classList.remove("hidden");
 
 }
 
-
-else if(
-state==="CHANNEL_ERROR"
-){
+else if(state==="CHANNEL_ERROR"){
 
 status.innerText=
 "❌ CHANNEL ERROR";
@@ -859,10 +683,7 @@ console.error(error);
 
 }
 
-
-else if(
-state==="TIMED_OUT"
-){
+else if(state==="TIMED_OUT"){
 
 status.innerText=
 "❌ Supabase timeout";
@@ -883,9 +704,7 @@ async function(){
 
 try{
 
-await navigator
-.clipboard
-.writeText(roomCode);
+await navigator.clipboard.writeText(roomCode);
 
 alert(
 "Kode room:\n"+roomCode
@@ -915,13 +734,11 @@ new RTCPeerConnection({
 iceServers:[
 
 {
-urls:
-"stun:stun.l.google.com:19302"
+urls:"stun:stun.l.google.com:19302"
 },
 
 {
-urls:
-"stun:stun1.l.google.com:19302"
+urls:"stun:stun1.l.google.com:19302"
 }
 
 ]
@@ -936,12 +753,11 @@ remoteVideo.srcObject=
 remoteStream;
 
 
-/* TRACK LOCAL */
+/* LOCAL TRACK */
 
 localStream
 .getTracks()
-.forEach(
-track=>{
+.forEach(track=>{
 
 peer.addTrack(
 track,
@@ -951,20 +767,19 @@ localStream
 });
 
 
-/* TRACK REMOTE */
+/* REMOTE TRACK */
 
 peer.ontrack=
 event=>{
 
-if(
-event.streams &&
-event.streams[0]
-){
+const streams=
+event.streams;
 
-event.streams[0]
+if(streams && streams[0]){
+
+streams[0]
 .getTracks()
-.forEach(
-track=>{
+.forEach(track=>{
 
 if(
 !remoteStream
@@ -972,9 +787,7 @@ if(
 .includes(track)
 ){
 
-remoteStream.addTrack(
-track
-);
+remoteStream.addTrack(track);
 
 }
 
@@ -995,9 +808,7 @@ if(event.candidate){
 await kirim({
 
 type:"candidate",
-
-candidate:
-event.candidate
+candidate:event.candidate
 
 });
 
@@ -1014,7 +825,6 @@ peer.onconnectionstatechange=
 const state=
 peer.connectionState;
 
-
 if(state==="connected"){
 
 status.innerText=
@@ -1022,27 +832,21 @@ status.innerText=
 
 }
 
-else if(
-state==="connecting"
-){
+else if(state==="connecting"){
 
 status.innerText=
 "🟡 Menghubungkan kamera...";
 
 }
 
-else if(
-state==="disconnected"
-){
+else if(state==="disconnected"){
 
 status.innerText=
 "🟠 Koneksi terputus";
 
 }
 
-else if(
-state==="failed"
-){
+else if(state==="failed"){
 
 status.innerText=
 "🔴 WebRTC gagal";
@@ -1067,9 +871,7 @@ try{
 await channel.send({
 
 type:"broadcast",
-
 event:"signal",
-
 payload:data
 
 });
@@ -1092,7 +894,7 @@ async function prosesSignal(data){
 try{
 
 
-/* HOST */
+/* HOST MENERIMA HELLO */
 
 if(
 data.type==="hello" &&
@@ -1109,16 +911,14 @@ offer
 await kirim({
 
 type:"offer",
-
-sdp:
-peer.localDescription
+sdp:peer.localDescription
 
 });
 
 }
 
 
-/* GUEST */
+/* GUEST MENERIMA OFFER */
 
 else if(
 data.type==="offer" &&
@@ -1128,6 +928,29 @@ role==="guest"
 await peer.setRemoteDescription(
 data.sdp
 );
+
+
+/*
+ Masukkan ICE yang datang
+ sebelum remote description siap.
+*/
+
+for(
+const candidate of pendingCandidates
+){
+
+try{
+
+await peer.addIceCandidate(
+candidate
+);
+
+}catch(e){}
+
+}
+
+pendingCandidates=[];
+
 
 const answer=
 await peer.createAnswer();
@@ -1139,16 +962,14 @@ answer
 await kirim({
 
 type:"answer",
-
-sdp:
-peer.localDescription
+sdp:peer.localDescription
 
 });
 
 }
 
 
-/* HOST ANSWER */
+/* HOST MENERIMA ANSWER */
 
 else if(
 data.type==="answer" &&
@@ -1159,6 +980,28 @@ await peer.setRemoteDescription(
 data.sdp
 );
 
+
+/*
+ Masukkan candidate yang
+ sempat menunggu.
+*/
+
+for(
+const candidate of pendingCandidates
+){
+
+try{
+
+await peer.addIceCandidate(
+candidate
+);
+
+}catch(e){}
+
+}
+
+pendingCandidates=[];
+
 }
 
 
@@ -1168,18 +1011,38 @@ else if(
 data.type==="candidate"
 ){
 
+if(
+peer.remoteDescription &&
+peer.remoteDescription.type
+){
+
 try{
 
 await peer.addIceCandidate(
 data.candidate
 );
 
-}catch(e){}
+}catch(e){
+
+console.warn(
+"ICE gagal:",
+e
+);
+
+}
+
+}else{
+
+pendingCandidates.push(
+data.candidate
+);
+
+}
 
 }
 
 
-/* FOTO DARI TEMAN */
+/* FOTO */
 
 else if(
 data.type==="photo"
@@ -1208,23 +1071,17 @@ error
 fotoBtn.onclick=
 async function(){
 
-/*
-  Siapa pun boleh menekan.
-  Perintah dikirim ke HP satunya.
-*/
+if(capturing)return;
+
+capturing=true;
 
 await kirim({
-
 type:"photo"
-
 });
 
+await ambilFoto();
 
-/*
-  HP sendiri juga ikut.
-*/
-
-ambilFoto();
+capturing=false;
 
 };
 
@@ -1235,10 +1092,17 @@ ambilFoto();
 
 async function ambilFoto(){
 
+if(
+!localVideo.videoWidth
+){
+
+return;
+
+}
+
 countdown.classList.remove(
 "hidden"
 );
-
 
 for(
 let i=3;
@@ -1246,16 +1110,13 @@ i>=1;
 i--
 ){
 
-countdown.innerText=
-i;
+countdown.innerText=i;
 
 await tunggu(700);
 
 }
 
-
-countdown.innerText=
-"📸";
+countdown.innerText="📸";
 
 await tunggu(300);
 
@@ -1276,10 +1137,7 @@ function tunggu(ms){
 
 return new Promise(
 resolve=>
-setTimeout(
-resolve,
-ms
-)
+setTimeout(resolve,ms)
 );
 
 }
@@ -1290,43 +1148,27 @@ ms
 ================================================== */
 
 document
-.querySelectorAll(
-".effects button"
-)
-.forEach(
-button=>{
+.querySelectorAll(".effects button")
+.forEach(button=>{
 
-button.onclick=
-()=>{
+button.onclick=()=>{
 
 currentEffect=
 button.dataset.fx;
 
-
 localVideo.className=
 currentEffect;
-
 
 remoteVideo.className=
 currentEffect;
 
-
 document
-.querySelectorAll(
-".effects button"
-)
-.forEach(
-b=>
-b.classList.remove(
-"active"
-)
+.querySelectorAll(".effects button")
+.forEach(b=>
+b.classList.remove("active")
 );
 
-
-button.classList.add(
-"active"
-);
-
+button.classList.add("active");
 
 effectName.innerText=
 "Efek: "+
@@ -1341,14 +1183,11 @@ button.innerText;
    AI PROMPT
 ================================================== */
 
-document
-.getElementById("aiBtn")
-.onclick=
+document.getElementById("aiBtn").onclick=
 function(){
 
 currentPrompt=
 aiPrompt.value.trim();
-
 
 if(!currentPrompt){
 
@@ -1359,16 +1198,6 @@ return;
 
 }
 
-
-/*
-  Untuk sekarang prompt disimpan
-  sebagai konsep background.
-
-  Generator AI sungguhan harus
-  dipanggil dari backend agar
-  secret API tidak bocor.
-*/
-
 aiPreview.innerHTML=
 "🤖 Konsep AI aktif:<br><b>"+
 escapeHTML(currentPrompt)+
@@ -1378,7 +1207,7 @@ escapeHTML(currentPrompt)+
 
 
 /* ==================================================
-   AMANKAN TEKS PROMPT
+   ESCAPE
 ================================================== */
 
 function escapeHTML(text){
@@ -1394,7 +1223,7 @@ return text
 
 
 /* ==================================================
-   BUAT HASIL FOTO
+   BUAT FOTO
 ================================================== */
 
 function buatFoto(){
@@ -1408,11 +1237,6 @@ hasil.height=H;
 const ctx=
 hasil.getContext("2d");
 
-
-/*
-  Background hitam.
-*/
-
 ctx.fillStyle="#000";
 
 ctx.fillRect(
@@ -1424,7 +1248,7 @@ H
 
 
 /*
-  Kamera kiri.
+ Kamera kiri
 */
 
 gambarVideo(
@@ -1438,7 +1262,7 @@ H
 
 
 /*
-  Kamera kanan.
+ Kamera kanan
 */
 
 gambarVideo(
@@ -1452,7 +1276,7 @@ H
 
 
 /*
-  Garis tengah.
+ Garis tengah
 */
 
 ctx.fillStyle="#fff";
@@ -1466,8 +1290,7 @@ H
 
 
 /*
-  Prompt AI ditambahkan sebagai
-  metadata visual sederhana.
+ Prompt AI
 */
 
 if(currentPrompt){
@@ -1484,13 +1307,13 @@ W,
 
 ctx.fillStyle="#fff";
 
-ctx.font=
-"11px Arial";
+ctx.font="11px Arial";
 
 ctx.textAlign="center";
 
 ctx.fillText(
-"AI: "+currentPrompt.slice(0,80),
+"AI: "+
+currentPrompt.slice(0,80),
 W/2,
 H-20
 );
@@ -1501,7 +1324,6 @@ H-20
 hasil.classList.remove(
 "hidden"
 );
-
 
 download.href=
 hasil.toDataURL(
@@ -1546,8 +1368,7 @@ h
 
 ctx.fillStyle="#aaa";
 
-ctx.font=
-"13px Arial";
+ctx.font="13px Arial";
 
 ctx.textAlign="center";
 
@@ -1570,11 +1391,7 @@ video.videoHeight;
 
 
 /*
-  COVER:
-  seperti kamera HP.
-
-  Tetap memenuhi kotak 9:16,
-  tidak tidur, tidak mengecil.
+ COVER
 */
 
 const scale=
@@ -1583,13 +1400,11 @@ w/vw,
 h/vh
 );
 
-
 const nw=
 vw*scale;
 
 const nh=
 vh*scale;
-
 
 const dx=
 x+(w-nw)/2;
@@ -1613,13 +1428,18 @@ ctx.clip();
 
 
 /*
-  Tidak mirror.
+ Efek ikut masuk
+ ke hasil foto.
 */
 
 ctx.filter=
 getComputedStyle(video)
 .filter;
 
+
+/*
+ Tidak mirror.
+*/
 
 ctx.drawImage(
 video,
@@ -1628,7 +1448,6 @@ dy,
 nw,
 nh
 );
-
 
 ctx.restore();
 

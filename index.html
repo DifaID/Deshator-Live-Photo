@@ -354,6 +354,39 @@ document.getElementById("aiBtn").onclick = function(){
 
 function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+/* ================================================== HELPER CROP UNTUK MENCEGAH GEPENG ================================================== */
+function drawCoverImage(ctx, img, x, y, w, h, isMirrored = false) {
+  const imgW = img.videoWidth || img.width;
+  const imgH = img.videoHeight || img.height;
+  if (!imgW || !imgH) return;
+
+  const imgRatio = imgW / imgH;
+  const targetRatio = w / h;
+  let sW, sH, sX, sY;
+
+  if (imgRatio > targetRatio) {
+    sH = imgH;
+    sW = imgH * targetRatio;
+    sX = (imgW - sW) / 2;
+    sY = 0;
+  } else {
+    sW = imgW;
+    sH = imgW / targetRatio;
+    sX = 0;
+    sY = (imgH - sH) / 2;
+  }
+
+  ctx.save();
+  if (isMirrored) {
+    ctx.translate(x + w, y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, sX, sY, sW, sH, 0, 0, w, h);
+  } else {
+    ctx.drawImage(img, sX, sY, sW, sH, x, y, w, h);
+  }
+  ctx.restore();
+}
+
 /* ================================================== SIMPAN FRAME PHOTOBOOTH ================================================== */
 function simpanFrame(){
   const W = 800, H = 450;
@@ -364,24 +397,29 @@ function simpanFrame(){
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
   const photoW = W / 2, photoH = H;
 
-  // Terapkan Filter Warna Aktif ke Canvas
+  // Terapkan Filter Warna Aktif
   ctx.filter = getComputedStyle(localVideo).filter;
 
-  /* 1. GAMBAR KAMERA LOKAL (KAMU - KIRI) */
-  ctx.save();
-  // Lakukan pencerminan horizontal persis seperti tampilan live CSS (scaleX(-1))
-  ctx.translate(photoW, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(localVideo, 0, 0, photoW, photoH);
-  ctx.restore();
+  /* SINKRONISASI MIRRORING DAN POSISI (HOST & GUEST SAMA PERSIS) */
+  let leftVideo, rightVideo;
+  let leftMirror, rightMirror;
 
-  /* 2. GAMBAR KAMERA REMOTE (PASANGAN - KANAN) */
-  ctx.save();
-  // Kamera pasangan dirender langsung tanpa cermin
-  ctx.drawImage(remoteVideo, photoW, 0, photoW, photoH);
-  ctx.restore();
+  if (role === "host") {
+    leftVideo = localVideo;
+    leftMirror = true; // Kamera sendiri selalu di-mirror agar presisi seperti cermin
+    rightVideo = remoteVideo;
+    rightMirror = false;
+  } else {
+    leftVideo = remoteVideo;
+    leftMirror = false;
+    rightVideo = localVideo;
+    rightMirror = true; // Kamera sendiri di-mirror
+  }
 
-  // Reset filter untuk elemen grafis
+  // Draw Sisi Kiri & Sisi Kanan dengan Pemotongan Rasio Otomatis (Anti-Gepeng)
+  drawCoverImage(ctx, leftVideo, 0, 0, photoW, photoH, leftMirror);
+  drawCoverImage(ctx, rightVideo, photoW, 0, photoW, photoH, rightMirror);
+
   ctx.filter = "none";
 
   /* Garis Pemisah Tengah */

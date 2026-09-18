@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio - Host Control Edition</title>
+  <title>Mini LDR Studio - Selfie Edition</title>
   
   <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,10 +23,16 @@
     #roomInfo{ margin:8px; font-size:16px }
     .hidden{ display:none!important }
 
-    /* ========================= KAMERA DISPLAY (NO MIRROR) ========================= */
+    /* ========================= KAMERA DISPLAY (SELFIE MIRROR) ========================= */
     .cameras{ display:grid; grid-template-columns:1fr 1fr; gap:5px }
     .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#000; overflow:hidden; border-radius:10px }
-    .camera video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover } /* Tanpa transform scaleX(-1) */
+    
+    /* Kamera Depan di-mirror agar pas seperti cermin di layar HP */
+    .camera video{ 
+      position:absolute; inset:0; width:100%; height:100%; 
+      object-fit:cover; 
+      transform: scaleX(-1); 
+    }
 
     .label{ position:absolute; top:7px; left:7px; z-index:5; background:#000b; padding:5px 8px; border-radius:6px; font-size:11px }
 
@@ -96,7 +102,7 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • Direct View Edition</p>
+  <p>Studio foto jarak jauh • Kamera Depan Edition</p>
 
   <div id="setup">
     <button id="buatBtn">BUAT ROOM (HOST)</button>
@@ -114,16 +120,15 @@
   <div id="cameras" class="cameras hidden">
     <div class="camera">
       <div class="label" id="labelLeft">HOST</div>
-      <video id="videoLeft" autoplay playsinline></video>
+      <video id="videoLeft" autoplay playsinline muted></video>
     </div>
     <div class="camera">
       <div class="label" id="labelRight">GUEST</div>
-      <video id="videoRight" autoplay playsinline></video>
+      <video id="videoRight" autoplay playsinline muted></video>
     </div>
   </div>
 
   <div class="controls">
-    <!-- Tombol foto hanya muncul jika role == 'host' -->
     <button id="fotoBtn" class="hidden">📸 JEPET FOTO (HOST ONLY)</button>
   </div>
 
@@ -238,27 +243,39 @@ async function masukRoom(){
   setup.classList.add("hidden");
   roomInfo.innerHTML = "ROOM: <b>" + roomCode + "</b> (" + role.toUpperCase() + ")";
   copyRoom.classList.remove("hidden");
-  status.innerText = "Meminta izin kamera...";
+  status.innerText = "Meminta izin kamera depan...";
 
   try{
+    /* MEMAKSA PENGGUNAAN KAMERA DEPAN (FACING MODE: USER) */
     localStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "user" }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3/4 } },
+      video: { 
+        facingMode: { exact: "user" }, 
+        width: { ideal: 1080 }, 
+        height: { ideal: 1440 }, 
+        aspectRatio: { ideal: 3/4 } 
+      },
       audio: false
+    }).catch(async () => {
+      // Fallback jika 'exact' tidak didukung di browser tertentu
+      return await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      });
     });
   }catch(error){
     console.error(error);
-    status.innerText = "❌ Kamera gagal.";
-    alert("Izin kamera diperlukan.");
+    status.innerText = "❌ Kamera gagal diakses.";
+    alert("Izin kamera depan diperlukan.");
     return;
   }
 
-  /*
-    TAMPILAN DI KEDUA HP:
-    - Sisi Kiri: Host
-    - Sisi Kanan: Guest
-  */
   remoteStream = new MediaStream();
 
+  /*
+    SINKRONISASI TAMPILAN:
+    - Layar Kiri: Kamera Host
+    - Layar Kanan: Kamera Guest
+  */
   if (role === "host") {
     videoLeft.srcObject = localStream;
     labelLeft.innerText = "KAMU (HOST)";
@@ -266,7 +283,6 @@ async function masukRoom(){
     videoRight.srcObject = remoteStream;
     labelRight.innerText = "PASANGAN (GUEST)";
 
-    // Hanya Host yang punya tombol foto
     fotoBtn.classList.remove("hidden");
   } else {
     videoLeft.srcObject = remoteStream;
@@ -275,7 +291,6 @@ async function masukRoom(){
     videoRight.srcObject = localStream;
     labelRight.innerText = "KAMU (GUEST)";
 
-    // Guest tidak menampilkan tombol foto
     fotoBtn.classList.add("hidden");
   }
 
@@ -341,7 +356,6 @@ async function prosesSignal(data){
     } else if(data.type === "candidate"){
       if(peer.remoteDescription) await peer.addIceCandidate(data.candidate);
     } else if(data.type === "photo" && !capturing){
-      // Sinyal foto diterima oleh Guest dari Host
       capturing = true;
       tampilkanToast("📸 Host mengambil foto!");
       await ambilFoto();
@@ -388,8 +402,8 @@ function tunggu(ms){ return new Promise(r => setTimeout(r, ms)); }
 document.querySelectorAll(".effects button").forEach(btn => {
   btn.onclick = () => {
     currentEffect = btn.dataset.fx;
-    videoLeft.className = "camera " + currentEffect;
-    videoRight.className = "camera " + currentEffect;
+    videoLeft.className = currentEffect;
+    videoRight.className = currentEffect;
     document.querySelectorAll(".effects button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     effectName.innerText = "Efek: " + btn.innerText;
@@ -403,7 +417,7 @@ document.getElementById("aiBtn").onclick = function(){
 
 function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ================================================== HELPER CROP ANTI-GEPENG & TANPA MIRROR ================================================== */
+/* ================================================== DRAWING CANVAS (SELFIE MIRROR MAINTAINED) ================================================== */
 function drawCoverImage(ctx, img, x, y, w, h) {
   const imgW = img.videoWidth || img.width;
   const imgH = img.videoHeight || img.height;
@@ -425,8 +439,12 @@ function drawCoverImage(ctx, img, x, y, w, h) {
     sY = (imgH - sH) / 2;
   }
 
-  // Tanpa mirror / pembalikan orientasi
-  ctx.drawImage(img, sX, sY, sW, sH, x, y, w, h);
+  // Tetap di-mirror saat digambar di canvas agar hasil foto 100% persis dengan tampilan preview di layar HP
+  ctx.save();
+  ctx.translate(x + w, y);
+  ctx.scale(-1, 1);
+  ctx.drawImage(img, sX, sY, sW, sH, 0, 0, w, h);
+  ctx.restore();
 }
 
 /* ================================================== SIMPAN FRAME PHOTOBOOTH ================================================== */
@@ -439,13 +457,13 @@ function simpanFrame(){
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
   const photoW = W / 2, photoH = H;
 
-  // Filter warna aktif
+  // Terapkan filter warna aktif
   ctx.filter = getComputedStyle(videoLeft).filter;
 
   /*
-    MENGAMBIL TAMPILAN SECARA SINKRON:
-    - Sisi Kiri: Kamera Host (videoLeft)
-    - Sisi Kanan: Kamera Guest (videoRight)
+    KEDUA HP MEMILIKI SINKRONISASI CANVAS YANG SAMA:
+    - Sisi Kiri: Host
+    - Sisi Kanan: Guest
   */
   drawCoverImage(ctx, videoLeft, 0, 0, photoW, photoH);
   drawCoverImage(ctx, videoRight, photoW, 0, photoW, photoH);

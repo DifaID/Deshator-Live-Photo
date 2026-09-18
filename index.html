@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio - Synchronized Edition</title>
+  <title>Mini LDR Studio - Host Control Edition</title>
   
   <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,13 +23,10 @@
     #roomInfo{ margin:8px; font-size:16px }
     .hidden{ display:none!important }
 
-    /* ========================= KAMERA DISPLAY ========================= */
+    /* ========================= KAMERA DISPLAY (NO MIRROR) ========================= */
     .cameras{ display:grid; grid-template-columns:1fr 1fr; gap:5px }
     .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#000; overflow:hidden; border-radius:10px }
-    .camera video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
-    
-    /* Mirroring diatur dinamis via class JavaScript */
-    .mirror{ transform: scaleX(-1); }
+    .camera video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover } /* Tanpa transform scaleX(-1) */
 
     .label{ position:absolute; top:7px; left:7px; z-index:5; background:#000b; padding:5px 8px; border-radius:6px; font-size:11px }
 
@@ -37,6 +34,14 @@
     .controls{ margin-top:8px }
     #fotoBtn{ font-size:16px; padding:13px 22px }
     #copyRoom{ background:#333 }
+
+    /* ========================= NOTIFIKASI GUEST ========================= */
+    #toastNotification {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #16a34a; color: #fff; padding: 12px 24px; border-radius: 30px;
+      font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 1000; transition: all 0.3s ease;
+    }
 
     /* ========================= EFEK ========================= */
     .effects{ display:flex; gap:5px; overflow-x:auto; padding:8px 2px; margin-top:5px }
@@ -91,7 +96,7 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • Synchronized Edition</p>
+  <p>Studio foto jarak jauh • Direct View Edition</p>
 
   <div id="setup">
     <button id="buatBtn">BUAT ROOM (HOST)</button>
@@ -118,7 +123,8 @@
   </div>
 
   <div class="controls">
-    <button id="fotoBtn" class="hidden">📸 JEPET FOTO (MAX 4)</button>
+    <!-- Tombol foto hanya muncul jika role == 'host' -->
+    <button id="fotoBtn" class="hidden">📸 JEPET FOTO (HOST ONLY)</button>
   </div>
 
   <!-- COLOR FILTER -->
@@ -151,11 +157,12 @@
     </div>
     <div id="gallery" class="gallery"></div>
     <br>
-    <button id="resetBtn" style="background:#444;">🔄 RESET/AMBIL ULANG</button>
+    <button id="resetBtn" style="background:#444;">🔄 RESET / AMBIL ULANG</button>
   </div>
 </main>
 
 <div id="countdown" class="hidden">3</div>
+<div id="toastNotification" class="hidden">📸 Host mengambil foto!</div>
 <div id="printSheet"></div>
 
 <script>
@@ -192,6 +199,7 @@ const labelRight = document.getElementById("labelRight");
 const fotoBtn = document.getElementById("fotoBtn");
 const copyRoom = document.getElementById("copyRoom");
 const countdown = document.getElementById("countdown");
+const toastNotification = document.getElementById("toastNotification");
 const effectArea = document.getElementById("effectArea");
 const aiArea = document.getElementById("aiArea");
 const effectName = document.getElementById("effectName");
@@ -240,33 +248,35 @@ async function masukRoom(){
   }catch(error){
     console.error(error);
     status.innerText = "❌ Kamera gagal.";
-    alert("Izin kamera diperlukan. Pastikan memakai HTTPS.");
+    alert("Izin kamera diperlukan.");
     return;
   }
 
   /*
-    SINKRONISASI VIEWPORT VIEW (HP 1 & HP 2 SAMA PRESISI)
-    - Sisi Kiri = HOST
-    - Sisi Kanan = GUEST
+    TAMPILAN DI KEDUA HP:
+    - Sisi Kiri: Host
+    - Sisi Kanan: Guest
   */
   remoteStream = new MediaStream();
 
   if (role === "host") {
     videoLeft.srcObject = localStream;
-    videoLeft.classList.add("mirror"); // Mirror untuk cermin diri sendiri
     labelLeft.innerText = "KAMU (HOST)";
 
     videoRight.srcObject = remoteStream;
-    videoRight.classList.remove("mirror");
     labelRight.innerText = "PASANGAN (GUEST)";
+
+    // Hanya Host yang punya tombol foto
+    fotoBtn.classList.remove("hidden");
   } else {
     videoLeft.srcObject = remoteStream;
-    videoLeft.classList.remove("mirror");
     labelLeft.innerText = "PASANGAN (HOST)";
 
     videoRight.srcObject = localStream;
-    videoRight.classList.add("mirror"); // Mirror untuk cermin diri sendiri
     labelRight.innerText = "KAMU (GUEST)";
+
+    // Guest tidak menampilkan tombol foto
+    fotoBtn.classList.add("hidden");
   }
 
   cameras.classList.remove("hidden");
@@ -281,7 +291,6 @@ async function masukRoom(){
     if(state === "SUBSCRIBED"){
       status.innerText = "🟢 Terhubung ke Room. Menunggu pasangan...";
       await kirim({ type: "hello" });
-      fotoBtn.classList.remove("hidden");
     }
   });
 }
@@ -332,15 +341,27 @@ async function prosesSignal(data){
     } else if(data.type === "candidate"){
       if(peer.remoteDescription) await peer.addIceCandidate(data.candidate);
     } else if(data.type === "photo" && !capturing){
+      // Sinyal foto diterima oleh Guest dari Host
       capturing = true;
+      tampilkanToast("📸 Host mengambil foto!");
       await ambilFoto();
       capturing = false;
+    } else if(data.type === "reset"){
+      photoFrames = [];
+      renderPhotoboothStrip();
     }
   }catch(e){}
 }
 
+function tampilkanToast(pesan){
+  toastNotification.innerText = pesan;
+  toastNotification.classList.remove("hidden");
+  setTimeout(() => toastNotification.classList.add("hidden"), 2500);
+}
+
 /* ================================================== AMBIL FOTO ================================================== */
 fotoBtn.onclick = async function(){
+  if(role !== "host") return;
   if(photoFrames.length >= MAX_PHOTOS){
     alert("📸 Photobooth sudah penuh! Klik Reset untuk mengulang.");
     return;
@@ -367,8 +388,8 @@ function tunggu(ms){ return new Promise(r => setTimeout(r, ms)); }
 document.querySelectorAll(".effects button").forEach(btn => {
   btn.onclick = () => {
     currentEffect = btn.dataset.fx;
-    videoLeft.className = "camera " + currentEffect + (videoLeft.classList.contains("mirror") ? " mirror" : "");
-    videoRight.className = "camera " + currentEffect + (videoRight.classList.contains("mirror") ? " mirror" : "");
+    videoLeft.className = "camera " + currentEffect;
+    videoRight.className = "camera " + currentEffect;
     document.querySelectorAll(".effects button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     effectName.innerText = "Efek: " + btn.innerText;
@@ -382,8 +403,8 @@ document.getElementById("aiBtn").onclick = function(){
 
 function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ================================================== HELPER CROP ANTI-GEPENG ================================================== */
-function drawCoverImage(ctx, img, x, y, w, h, isMirrored = false) {
+/* ================================================== HELPER CROP ANTI-GEPENG & TANPA MIRROR ================================================== */
+function drawCoverImage(ctx, img, x, y, w, h) {
   const imgW = img.videoWidth || img.width;
   const imgH = img.videoHeight || img.height;
   if (!imgW || !imgH) return;
@@ -404,15 +425,8 @@ function drawCoverImage(ctx, img, x, y, w, h, isMirrored = false) {
     sY = (imgH - sH) / 2;
   }
 
-  ctx.save();
-  if (isMirrored) {
-    ctx.translate(x + w, y);
-    ctx.scale(-1, 1);
-    ctx.drawImage(img, sX, sY, sW, sH, 0, 0, w, h);
-  } else {
-    ctx.drawImage(img, sX, sY, sW, sH, x, y, w, h);
-  }
-  ctx.restore();
+  // Tanpa mirror / pembalikan orientasi
+  ctx.drawImage(img, sX, sY, sW, sH, x, y, w, h);
 }
 
 /* ================================================== SIMPAN FRAME PHOTOBOOTH ================================================== */
@@ -429,15 +443,12 @@ function simpanFrame(){
   ctx.filter = getComputedStyle(videoLeft).filter;
 
   /*
-    SINKRONISASI KANVAS FOTO:
-    - Sisi Kiri: Video dari elemen videoLeft (selalu Host)
-    - Sisi Kanan: Video dari elemen videoRight (selalu Guest)
+    MENGAMBIL TAMPILAN SECARA SINKRON:
+    - Sisi Kiri: Kamera Host (videoLeft)
+    - Sisi Kanan: Kamera Guest (videoRight)
   */
-  const leftIsMirrored = videoLeft.classList.contains("mirror");
-  const rightIsMirrored = videoRight.classList.contains("mirror");
-
-  drawCoverImage(ctx, videoLeft, 0, 0, photoW, photoH, leftIsMirrored);
-  drawCoverImage(ctx, videoRight, photoW, 0, photoW, photoH, rightIsMirrored);
+  drawCoverImage(ctx, videoLeft, 0, 0, photoW, photoH);
+  drawCoverImage(ctx, videoRight, photoW, 0, photoW, photoH);
 
   ctx.filter = "none";
 
@@ -520,10 +531,11 @@ function renderPhotoboothStrip(){
   gallery.appendChild(card);
 }
 
-resetBtn.onclick = () => {
+resetBtn.onclick = async () => {
   if(photoFrames.length > 0 && confirm("Hapus semua pose?")){
     photoFrames = [];
     renderPhotoboothStrip();
+    await kirim({ type: "reset" });
   }
 };
 </script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio - Selfie Edition</title>
+  <title>Mini LDR Studio - Selfie Edition (Fixed Zoom)</title>
   
   <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,14 +23,14 @@
     #roomInfo{ margin:8px; font-size:16px }
     .hidden{ display:none!important }
 
-    /* ========================= KAMERA DISPLAY (SELFIE MIRROR) ========================= */
+    /* ========================= KAMERA DISPLAY (FIXED NO-ZOOM) ========================= */
     .cameras{ display:grid; grid-template-columns:1fr 1fr; gap:5px }
     .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#000; overflow:hidden; border-radius:10px }
     
-    /* Kamera Depan di-mirror agar pas seperti cermin di layar HP */
+    /* object-fit: contain murni menampilkan 100% tangkapan kamera tanpa dipotong/zoom */
     .camera video{ 
       position:absolute; inset:0; width:100%; height:100%; 
-      object-fit:cover; 
+      object-fit: contain; 
       transform: scaleX(-1); 
     }
 
@@ -102,7 +102,7 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • Kamera Depan Edition</p>
+  <p>Studio foto jarak jauh • Kamera Depan (Wide Balance)</p>
 
   <div id="setup">
     <button id="buatBtn">BUAT ROOM (HOST)</button>
@@ -116,7 +116,7 @@
   <button id="copyRoom" class="hidden">📋 SALIN KODE</button>
   <div id="status">Belum terhubung</div>
 
-  <!-- KAMERA DISPLAY (Sisi Kiri = Host, Sisi Kanan = Guest) -->
+  <!-- KAMERA DISPLAY -->
   <div id="cameras" class="cameras hidden">
     <div class="camera">
       <div class="label" id="labelLeft">HOST</div>
@@ -129,7 +129,7 @@
   </div>
 
   <div class="controls">
-    <button id="fotoBtn" class="hidden">📸 JEPET FOTO (HOST ONLY)</button>
+    <button id="fotoBtn" class="hidden">📸 JEPRET FOTO (HOST ONLY)</button>
   </div>
 
   <!-- COLOR FILTER -->
@@ -177,7 +177,7 @@ const SUPABASE_KEY = "sb_publishable_RVQ0mdl1PO17U_NanI-bGA_ZpoE4Zii";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ================================================== VARIABLE ================================================== */
-let role = null; // "host" atau "guest"
+let role = null; 
 let roomCode = null;
 let channel = null;
 let localStream = null;
@@ -246,21 +246,14 @@ async function masukRoom(){
   status.innerText = "Meminta izin kamera depan...";
 
   try{
-    /* MEMAKSA PENGGUNAAN KAMERA DEPAN (FACING MODE: USER) */
+    /* MENGGUNAKAN ANGLE RESOLUSI FLEKSIBEL AGAR TIDAK TER-CROP/ZOOM */
     localStream = await navigator.mediaDevices.getUserMedia({
       video: { 
-        facingMode: { exact: "user" }, 
-        width: { ideal: 1080 }, 
-        height: { ideal: 1440 }, 
-        aspectRatio: { ideal: 3/4 } 
+        facingMode: "user",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
       },
       audio: false
-    }).catch(async () => {
-      // Fallback jika 'exact' tidak didukung di browser tertentu
-      return await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false
-      });
     });
   }catch(error){
     console.error(error);
@@ -271,11 +264,6 @@ async function masukRoom(){
 
   remoteStream = new MediaStream();
 
-  /*
-    SINKRONISASI TAMPILAN:
-    - Layar Kiri: Kamera Host
-    - Layar Kanan: Kamera Guest
-  */
   if (role === "host") {
     videoLeft.srcObject = localStream;
     labelLeft.innerText = "KAMU (HOST)";
@@ -417,7 +405,7 @@ document.getElementById("aiBtn").onclick = function(){
 
 function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ================================================== DRAWING CANVAS (SELFIE MIRROR MAINTAINED) ================================================== */
+/* ================================================== DRAWING CANVAS (FIT ADAPTIF) ================================================== */
 function drawCoverImage(ctx, img, x, y, w, h) {
   const imgW = img.videoWidth || img.width;
   const imgH = img.videoHeight || img.height;
@@ -439,7 +427,6 @@ function drawCoverImage(ctx, img, x, y, w, h) {
     sY = (imgH - sH) / 2;
   }
 
-  // Tetap di-mirror saat digambar di canvas agar hasil foto 100% persis dengan tampilan preview di layar HP
   ctx.save();
   ctx.translate(x + w, y);
   ctx.scale(-1, 1);
@@ -447,7 +434,7 @@ function drawCoverImage(ctx, img, x, y, w, h) {
   ctx.restore();
 }
 
-/* ================================================== SIMPAN FRAME PHOTOBOOTH ================================================== */
+/* ================================================== SIMPAN FRAME ================================================== */
 function simpanFrame(){
   const W = 800, H = 450;
   const canvas = document.createElement("canvas");
@@ -457,20 +444,13 @@ function simpanFrame(){
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
   const photoW = W / 2, photoH = H;
 
-  // Terapkan filter warna aktif
   ctx.filter = getComputedStyle(videoLeft).filter;
 
-  /*
-    KEDUA HP MEMILIKI SINKRONISASI CANVAS YANG SAMA:
-    - Sisi Kiri: Host
-    - Sisi Kanan: Guest
-  */
   drawCoverImage(ctx, videoLeft, 0, 0, photoW, photoH);
   drawCoverImage(ctx, videoRight, photoW, 0, photoW, photoH);
 
   ctx.filter = "none";
 
-  /* Garis Pemisah Tengah */
   ctx.fillStyle = "#fff"; ctx.fillRect(photoW - 1, 0, 2, photoH);
 
   photoFrames.push(canvas);
@@ -498,7 +478,6 @@ function renderPhotoboothStrip(){
   stripCanvas.width = stripW; stripCanvas.height = stripH;
   const ctx = stripCanvas.getContext("2d");
 
-  /* Background Kertas Photobooth */
   ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, stripW, stripH);
 
   photoFrames.forEach((frame, idx) => {
@@ -506,7 +485,6 @@ function renderPhotoboothStrip(){
     ctx.drawImage(frame, padding, startY, frameW, frameH);
   });
 
-  /* Branding / Footer */
   const footerY = stripH - footerH + 20;
   ctx.fillStyle = "#111111"; ctx.font = "bold 32px Arial"; ctx.textAlign = "center";
   ctx.fillText("MINI LDR STUDIO", stripW / 2, footerY + 30);

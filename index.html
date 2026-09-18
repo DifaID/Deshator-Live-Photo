@@ -3,149 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Mini LDR Studio V2</title>
+<title>Mini LDR Studio V3</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-  margin:0;
-  background:#111;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  text-align:center;
+margin:0;
+background:#080808;
+color:#fff;
+font-family:Arial,sans-serif;
+text-align:center;
 }
 
 main{
-  width:100%;
-  max-width:900px;
-  margin:auto;
-  padding:12px;
+max-width:900px;
+margin:auto;
+padding:10px;
 }
 
 h1{
-  font-size:23px;
-  margin:8px 0;
+font-size:22px;
+margin:7px 0;
 }
 
 p{
-  color:#ccc;
-  margin:6px;
+color:#bbb;
+margin:5px;
+}
+
+button,select,input{
+border:0;
+border-radius:9px;
+padding:11px 13px;
+font-size:14px;
 }
 
 button{
-  border:0;
-  border-radius:9px;
-  padding:12px 16px;
-  margin:5px;
-  background:#e53935;
-  color:#fff;
-  font-weight:bold;
-  font-size:14px;
+background:#e53935;
+color:white;
+font-weight:bold;
+margin:4px;
 }
 
 button:active{
-  transform:scale(.96);
+transform:scale(.96);
 }
 
 input{
-  width:150px;
-  padding:12px;
-  border:0;
-  border-radius:9px;
-  font-size:16px;
-  text-align:center;
-  text-transform:uppercase;
+text-align:center;
+}
+
+#kodeInput{
+width:140px;
+text-transform:uppercase;
 }
 
 #status{
-  margin:12px 0;
-  color:#8cff8c;
-  font-size:14px;
+margin:9px;
+color:#79ff79;
+font-size:13px;
 }
 
 #roomInfo{
-  margin:10px;
-  font-size:17px;
-}
-
-#copyRoom{
-  background:#444;
-}
-
-/* =========================
-   DUA KAMERA
-========================= */
-
-.cameras{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px;
-  width:100%;
-}
-
-.camera{
-  position:relative;
-  width:100%;
-  aspect-ratio:9/16;
-  background:#000;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-/*
-  contain = TIDAK ZOOM
-  seluruh gambar kamera terlihat
-*/
-
-.camera video{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  background:#000;
-}
-
-.label{
-  position:absolute;
-  top:7px;
-  left:7px;
-  background:#000c;
-  padding:5px 8px;
-  border-radius:6px;
-  font-size:12px;
-  z-index:2;
+margin:8px;
+font-size:16px;
 }
 
 .hidden{
-  display:none!important;
+display:none!important;
 }
 
 
 /* =========================
-   HASIL FOTO
+   KAMERA
+========================= */
+
+.cameras{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:5px;
+}
+
+.camera{
+position:relative;
+width:100%;
+aspect-ratio:9/16;
+background:#000;
+overflow:hidden;
+border-radius:10px;
+}
+
+.camera video{
+width:100%;
+height:100%;
+
+/*
+  Seperti kamera HP.
+  Tidak mengecil dan tidak
+  membuat kotak hitam.
+*/
+object-fit:cover;
+
+/*
+  PENTING:
+  tidak ada scaleX(-1)
+*/
+transform:none;
+}
+
+.label{
+position:absolute;
+top:7px;
+left:7px;
+z-index:5;
+background:#000b;
+padding:5px 8px;
+border-radius:6px;
+font-size:11px;
+}
+
+
+/* =========================
+   KONTROL
+========================= */
+
+.controls{
+margin-top:8px;
+}
+
+#fotoBtn{
+font-size:16px;
+padding:13px 22px;
+}
+
+#copyRoom{
+background:#333;
+}
+
+
+/* =========================
+   EFEK
+========================= */
+
+.effects{
+display:flex;
+gap:5px;
+overflow-x:auto;
+padding:8px 2px;
+margin-top:5px;
+}
+
+.effects button{
+white-space:nowrap;
+background:#252525;
+font-size:12px;
+}
+
+.effects button.active{
+background:#e53935;
+}
+
+#effectName{
+font-size:12px;
+color:#aaa;
+}
+
+
+/* =========================
+   PROMPT AI
+========================= */
+
+.ai{
+background:#151515;
+border-radius:10px;
+padding:10px;
+margin-top:10px;
+text-align:left;
+}
+
+.ai h3{
+margin:2px 0 7px;
+font-size:15px;
+}
+
+#aiPrompt{
+width:100%;
+text-align:left;
+background:#222;
+color:white;
+outline:none;
+}
+
+#aiPrompt::placeholder{
+color:#777;
+}
+
+#aiPreview{
+margin-top:7px;
+color:#aaa;
+font-size:12px;
+line-height:1.4;
+}
+
+
+/* =========================
+   HASIL
 ========================= */
 
 #hasil{
-  display:block;
-  width:100%;
-  max-width:540px;
-  margin:15px auto;
-  border-radius:10px;
+display:block;
+width:100%;
+max-width:540px;
+margin:12px auto;
+border-radius:10px;
 }
 
 #download{
-  display:inline-block;
-  background:#16a34a;
-  color:#fff;
-  padding:12px 18px;
-  border-radius:9px;
-  text-decoration:none;
-  font-weight:bold;
+display:inline-block;
+background:#16a34a;
+color:white;
+padding:12px 18px;
+border-radius:9px;
+text-decoration:none;
+font-weight:bold;
 }
 
 
@@ -154,40 +237,56 @@ input{
 ========================= */
 
 #countdown{
-  position:fixed;
-  inset:0;
-  background:#000c;
-  z-index:999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:100px;
-  font-weight:bold;
+position:fixed;
+inset:0;
+background:#000c;
+z-index:999;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:100px;
+font-weight:bold;
 }
 
 
 /* =========================
-   HP
+   FILTER EFEK
+========================= */
+
+.fx-normal{filter:none}
+.fx-vivid{filter:saturate(1.5) contrast(1.08)}
+.fx-warm{filter:sepia(.22) saturate(1.35) brightness(1.04)}
+.fx-cool{filter:saturate(.9) hue-rotate(12deg) brightness(1.04)}
+.fx-cinema{filter:contrast(1.25) saturate(.8) brightness(.9)}
+.fx-vintage{filter:sepia(.45) contrast(1.05) saturate(.75)}
+.fx-bw{filter:grayscale(1) contrast(1.15)}
+.fx-fade{filter:contrast(.9) brightness(1.08) saturate(.65)}
+.fx-dream{filter:brightness(1.08) saturate(1.25) blur(.15px)}
+.fx-night{filter:brightness(.72) contrast(1.25) saturate(1.2)}
+.fx-sunset{filter:sepia(.3) saturate(1.6) hue-rotate(-8deg)}
+.fx-rose{filter:sepia(.12) saturate(1.35) hue-rotate(-12deg)}
+.fx-moon{filter:grayscale(.3) brightness(.9) contrast(1.25)}
+.fx-dramatic{filter:contrast(1.45) saturate(1.15) brightness(.88)}
+
+
+/* =========================
+   MOBILE
 ========================= */
 
 @media(max-width:500px){
 
-  main{
-    padding:8px;
-  }
+main{
+padding:7px;
+}
 
-  h1{
-    font-size:20px;
-  }
+h1{
+font-size:19px;
+}
 
-  button{
-    font-size:13px;
-    padding:10px 12px;
-  }
-
-  input{
-    width:130px;
-  }
+button{
+font-size:12px;
+padding:10px 11px;
+}
 
 }
 </style>
@@ -197,52 +296,48 @@ input{
 
 <main>
 
-<h1>📸 Mini LDR Studio V2</h1>
+<h1>📸 Mini LDR Studio</h1>
 
-<p>Foto bersama dari 2 HP</p>
+<p>Studio foto jarak jauh • 2 HP</p>
 
 
 <!-- =========================
-     SETUP ROOM
+     ROOM
 ========================= -->
 
 <div id="setup">
 
-  <button id="buatBtn">
-    BUAT ROOM
-  </button>
+<button id="buatBtn">
+BUAT ROOM
+</button>
 
-  <br>
+<br>
 
-  <input
-    id="kodeInput"
-    maxlength="6"
-    placeholder="KODE ROOM"
-  >
+<input
+id="kodeInput"
+maxlength="6"
+placeholder="KODE ROOM"
+>
 
-  <button id="gabungBtn">
-    GABUNG
-  </button>
+<button id="gabungBtn">
+GABUNG
+</button>
 
 </div>
 
 
-<!-- =========================
-     INFO ROOM
-========================= -->
-
 <div id="roomInfo"></div>
 
 <button
-  id="copyRoom"
-  class="hidden"
+id="copyRoom"
+class="hidden"
 >
-  SALIN KODE
+SALIN KODE
 </button>
 
 
 <div id="status">
-  Belum terhubung
+Belum terhubung
 </div>
 
 
@@ -251,53 +346,164 @@ input{
 ========================= -->
 
 <div
-  id="cameras"
-  class="cameras hidden"
+id="cameras"
+class="cameras hidden"
 >
 
-  <div class="camera">
+<div class="camera">
 
-    <video
-      id="localVideo"
-      autoplay
-      playsinline
-      muted
-    ></video>
+<video
+id="localVideo"
+autoplay
+playsinline
+muted
+></video>
 
-    <div class="label">
-      KAMU
-    </div>
+<div class="label">
+KAMU
+</div>
 
-  </div>
+</div>
 
 
-  <div class="camera">
+<div class="camera">
 
-    <video
-      id="remoteVideo"
-      autoplay
-      playsinline
-    ></video>
+<video
+id="remoteVideo"
+autoplay
+playsinline
+></video>
 
-    <div class="label">
-      PASANGAN / TEMAN
-    </div>
+<div class="label">
+PASANGAN
+</div>
 
-  </div>
+</div>
 
 </div>
 
 
 <!-- =========================
-     FOTO BERSAMA
+     EFEK
 ========================= -->
 
-<button
-  id="fotoBtn"
-  class="hidden"
+<div
+id="effectArea"
+class="hidden"
 >
-  📸 FOTO BERSAMA
+
+<div id="effectName">
+Efek: Normal
+</div>
+
+<div class="effects">
+
+<button data-fx="fx-normal">
+Normal
 </button>
+
+<button data-fx="fx-vivid">
+Vivid
+</button>
+
+<button data-fx="fx-warm">
+Warm
+</button>
+
+<button data-fx="fx-cool">
+Cool
+</button>
+
+<button data-fx="fx-cinema">
+Cinema
+</button>
+
+<button data-fx="fx-vintage">
+Vintage
+</button>
+
+<button data-fx="fx-bw">
+B&W
+</button>
+
+<button data-fx="fx-fade">
+Fade
+</button>
+
+<button data-fx="fx-dream">
+Dream
+</button>
+
+<button data-fx="fx-night">
+Night
+</button>
+
+<button data-fx="fx-sunset">
+Sunset
+</button>
+
+<button data-fx="fx-rose">
+Rose
+</button>
+
+<button data-fx="fx-moon">
+Moon
+</button>
+
+<button data-fx="fx-dramatic">
+Dramatic
+</button>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     FOTO
+========================= -->
+
+<div class="controls">
+
+<button
+id="fotoBtn"
+class="hidden"
+>
+📸 FOTO BERSAMA
+</button>
+
+</div>
+
+
+<!-- =========================
+     AI PROMPT
+========================= -->
+
+<div
+id="aiArea"
+class="ai hidden"
+>
+
+<h3>
+🤖 Prompt AI Background
+</h3>
+
+<input
+id="aiPrompt"
+placeholder="Contoh: rooftop kota Jakarta saat sunset, cinematic..."
+>
+
+<button
+id="aiBtn"
+>
+✨ TERAPKAN PROMPT
+</button>
+
+<div id="aiPreview">
+Prompt belum digunakan.
+</div>
+
+</div>
 
 
 <!-- =========================
@@ -305,17 +511,16 @@ input{
 ========================= -->
 
 <canvas
-  id="hasil"
-  class="hidden"
+id="hasil"
+class="hidden"
 ></canvas>
 
-
 <a
-  id="download"
-  class="hidden"
-  download="mini-ldr-studio.jpg"
+id="download"
+class="hidden"
+download="mini-ldr-studio.jpg"
 >
-  💾 SIMPAN FOTO
+💾 SIMPAN FOTO
 </a>
 
 </main>
@@ -326,10 +531,10 @@ input{
 ========================= -->
 
 <div
-  id="countdown"
-  class="hidden"
+id="countdown"
+class="hidden"
 >
-  3
+3
 </div>
 
 
@@ -348,8 +553,8 @@ const SUPABASE_KEY =
 
 const supabaseClient =
 supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
+SUPABASE_URL,
+SUPABASE_KEY
 );
 
 
@@ -357,79 +562,92 @@ supabase.createClient(
    VARIABLE
 ================================================== */
 
-let role = null;
-
-let roomCode = null;
-
-let channel = null;
-
-let localStream = null;
-
-let peer = null;
-
-let remoteStream = null;
+let role=null;
+let roomCode=null;
+let channel=null;
+let localStream=null;
+let peer=null;
+let remoteStream=null;
+let currentEffect="fx-normal";
+let currentPrompt="";
 
 
 /* ==================================================
    ELEMENT
 ================================================== */
 
-const setup =
+const setup=
 document.getElementById("setup");
 
-const roomInfo =
+const roomInfo=
 document.getElementById("roomInfo");
 
-const status =
+const status=
 document.getElementById("status");
 
-const cameras =
+const cameras=
 document.getElementById("cameras");
 
-const localVideo =
+const localVideo=
 document.getElementById("localVideo");
 
-const remoteVideo =
+const remoteVideo=
 document.getElementById("remoteVideo");
 
-const fotoBtn =
+const fotoBtn=
 document.getElementById("fotoBtn");
 
-const copyRoom =
+const copyRoom=
 document.getElementById("copyRoom");
 
-const countdown =
+const countdown=
 document.getElementById("countdown");
 
-const hasil =
+const hasil=
 document.getElementById("hasil");
 
-const download =
+const download=
 document.getElementById("download");
+
+const effectArea=
+document.getElementById("effectArea");
+
+const aiArea=
+document.getElementById("aiArea");
+
+const effectName=
+document.getElementById("effectName");
+
+const aiPrompt=
+document.getElementById("aiPrompt");
+
+const aiPreview=
+document.getElementById("aiPreview");
 
 
 /* ==================================================
-   BUAT KODE ROOM
+   KODE ROOM
 ================================================== */
 
 function buatKode(){
 
-  const chars =
-  "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const chars=
+"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-  let kode = "";
+let kode="";
 
-  for(let i=0;i<6;i++){
+for(let i=0;i<6;i++){
 
-    kode += chars[
-      Math.floor(
-        Math.random()*chars.length
-      )
-    ];
+kode+=chars[
+Math.floor(
+Math.random()*chars.length
+)
+];
 
-  }
+}
 
-  return kode;
+return kode;
+
 }
 
 
@@ -439,14 +657,14 @@ function buatKode(){
 
 document
 .getElementById("buatBtn")
-.onclick =
+.onclick=
 async function(){
 
-  role = "host";
+role="host";
 
-  roomCode = buatKode();
+roomCode=buatKode();
 
-  await masukRoom();
+await masukRoom();
 
 };
 
@@ -457,32 +675,33 @@ async function(){
 
 document
 .getElementById("gabungBtn")
-.onclick =
+.onclick=
 async function(){
 
-  const value =
-  document
-  .getElementById("kodeInput")
-  .value
-  .trim()
-  .toUpperCase();
+const kode=
+document
+.getElementById("kodeInput")
+.value
+.trim()
+.toUpperCase();
 
 
-  if(value.length !== 6){
+if(kode.length!==6){
 
-    alert(
-      "Kode room harus 6 karakter."
-    );
+alert(
+"Kode room harus 6 karakter."
+);
 
-    return;
-  }
+return;
+
+}
 
 
-  role = "guest";
+role="guest";
 
-  roomCode = value;
+roomCode=kode;
 
-  await masukRoom();
+await masukRoom();
 
 };
 
@@ -493,199 +712,164 @@ async function(){
 
 async function masukRoom(){
 
-  setup.classList.add(
-    "hidden"
-  );
+setup.classList.add(
+"hidden"
+);
 
+roomInfo.innerHTML=
+"ROOM: <b>"+roomCode+"</b>";
 
-  roomInfo.innerHTML =
-  "ROOM: <b>"+roomCode+"</b>";
+copyRoom.classList.remove(
+"hidden"
+);
 
+status.innerText=
+"Meminta izin kamera...";
 
-  copyRoom.classList.remove(
-    "hidden"
-  );
 
+try{
 
-  status.innerText =
-  "Meminta izin kamera...";
+localStream=
+await navigator
+.mediaDevices
+.getUserMedia({
 
+video:{
+facingMode:"user",
+width:{ideal:1080},
+height:{ideal:1920}
+},
 
-  /* =========================
-     AKSES KAMERA
-  ========================= */
+audio:false
 
-  try{
+});
 
-    localStream =
-    await navigator
-    .mediaDevices
-    .getUserMedia({
 
-      video:{
-        facingMode:"user",
-        width:{
-          ideal:720
-        },
-        height:{
-          ideal:1280
-        }
-      },
+/*
+  Tidak menggunakan mirror.
+*/
 
-      audio:false
+localVideo.srcObject=
+localStream;
 
-    });
 
+}catch(error){
 
-    localVideo.srcObject =
-    localStream;
+console.error(error);
 
+status.innerText=
+"❌ Kamera gagal.";
 
-  }catch(error){
+alert(
+"Izin kamera diperlukan. Pastikan website memakai HTTPS."
+);
 
-    console.error(error);
+return;
 
-    status.innerText =
-    "❌ Kamera gagal.";
+}
 
-    alert(
-      "Izin kamera diperlukan. Pastikan website dibuka melalui HTTPS."
-    );
 
-    return;
+cameras.classList.remove(
+"hidden"
+);
 
-  }
+effectArea.classList.remove(
+"hidden"
+);
 
+aiArea.classList.remove(
+"hidden"
+);
 
-  cameras.classList.remove(
-    "hidden"
-  );
 
+/* WEBRTC */
 
-  /* =========================
-     WEBRTC
-  ========================= */
+buatPeer();
 
-  buatPeer();
 
+/* SUPABASE */
 
-  /* =========================
-     SUPABASE CHANNEL
-  ========================= */
+channel=
+supabaseClient.channel(
+"mini-ldr-room-"+roomCode,
+{
+config:{
+broadcast:{
+self:false
+}
+}
+});
 
-  channel =
-  supabaseClient.channel(
-    "mini-ldr-room-"+roomCode,
-    {
-      config:{
-        broadcast:{
-          self:false
-        }
-      }
-    }
-  );
 
+channel.on(
+"broadcast",
+{
+event:"signal"
+},
+async function(message){
 
-  channel.on(
-    "broadcast",
-    {
-      event:"signal"
-    },
-    async function(message){
+await prosesSignal(
+message.payload
+);
 
-      const data =
-      message.payload;
+});
 
-      console.log(
-        "Signal diterima:",
-        data
-      );
 
-      await prosesSignal(data);
+channel.subscribe(
+async function(state,error){
 
-    }
-  );
+console.log(
+"Supabase:",
+state,
+error
+);
 
 
-  /* =========================
-     SUBSCRIBE
-  ========================= */
+if(state==="SUBSCRIBED"){
 
-  channel.subscribe(
-    async function(state,error){
+status.innerText=
+"🟢 Room terhubung. Menunggu pasangan...";
 
-      console.log(
-        "Supabase:",
-        state,
-        error
-      );
 
+await kirim({
+type:"hello"
+});
 
-      if(state === "SUBSCRIBED"){
 
-        status.innerText =
-        "🟢 Room terhubung. Menunggu pasangan...";
+/*
+  SEKARANG KEDUA PIHAK
+  boleh memotret.
+*/
 
+fotoBtn.classList.remove(
+"hidden"
+);
 
-        /*
-          HELLO dikirim setelah
-          channel benar-benar aktif.
-        */
+}
 
-        await kirim({
-          type:"hello"
-        });
 
+else if(
+state==="CHANNEL_ERROR"
+){
 
-        /*
-          Hanya pembuat room
-          yang melihat tombol foto.
-        */
+status.innerText=
+"❌ CHANNEL ERROR";
 
-        if(role === "host"){
+console.error(error);
 
-          fotoBtn.classList.remove(
-            "hidden"
-          );
+}
 
-        }
 
-      }
+else if(
+state==="TIMED_OUT"
+){
 
+status.innerText=
+"❌ Supabase timeout";
 
-      else if(
-        state === "CHANNEL_ERROR"
-      ){
+}
 
-        status.innerText =
-        "❌ CHANNEL ERROR";
-
-        console.error(error);
-
-      }
-
-
-      else if(
-        state === "TIMED_OUT"
-      ){
-
-        status.innerText =
-        "❌ Koneksi Supabase timeout";
-
-      }
-
-
-      else if(
-        state === "CLOSED"
-      ){
-
-        status.innerText =
-        "Room ditutup.";
-
-      }
-
-    }
-  );
+});
 
 }
 
@@ -694,438 +878,353 @@ async function masukRoom(){
    COPY ROOM
 ================================================== */
 
-copyRoom.onclick =
+copyRoom.onclick=
 async function(){
 
-  try{
+try{
 
-    await navigator
-    .clipboard
-    .writeText(roomCode);
+await navigator
+.clipboard
+.writeText(roomCode);
 
+alert(
+"Kode room:\n"+roomCode
+);
 
-    alert(
-      "Kode room berhasil disalin:\n"+
-      roomCode
-    );
+}catch(e){
 
-  }catch(error){
+prompt(
+"Salin kode:",
+roomCode
+);
 
-    prompt(
-      "Salin kode room:",
-      roomCode
-    );
-
-  }
+}
 
 };
 
 
 /* ==================================================
-   BUAT WEBRTC PEER
+   WEBRTC
 ================================================== */
 
 function buatPeer(){
 
-  peer =
-  new RTCPeerConnection({
+peer=
+new RTCPeerConnection({
 
-    iceServers:[
+iceServers:[
 
-      {
-        urls:
-        "stun:stun.l.google.com:19302"
-      },
+{
+urls:
+"stun:stun.l.google.com:19302"
+},
 
-      {
-        urls:
-        "stun:stun1.l.google.com:19302"
-      }
+{
+urls:
+"stun:stun1.l.google.com:19302"
+}
 
-    ]
+]
 
-  });
-
-
-  remoteStream =
-  new MediaStream();
+});
 
 
-  remoteVideo.srcObject =
-  remoteStream;
+remoteStream=
+new MediaStream();
+
+remoteVideo.srcObject=
+remoteStream;
 
 
-  /* =========================
-     KAMERA SENDIRI
-  ========================= */
+/* TRACK LOCAL */
 
-  localStream
-  .getTracks()
-  .forEach(
-    function(track){
+localStream
+.getTracks()
+.forEach(
+track=>{
 
-      peer.addTrack(
-        track,
-        localStream
-      );
+peer.addTrack(
+track,
+localStream
+);
 
-    }
-  );
+});
 
 
-  /* =========================
-     VIDEO TEMAN
-  ========================= */
+/* TRACK REMOTE */
 
-  peer.ontrack =
-  function(event){
+peer.ontrack=
+event=>{
 
-    console.log(
-      "Video pasangan diterima"
-    );
+if(
+event.streams &&
+event.streams[0]
+){
 
+event.streams[0]
+.getTracks()
+.forEach(
+track=>{
 
-    if(
-      event.streams &&
-      event.streams[0]
-    ){
+if(
+!remoteStream
+.getTracks()
+.includes(track)
+){
 
-      event.streams[0]
-      .getTracks()
-      .forEach(
-        function(track){
+remoteStream.addTrack(
+track
+);
 
-          if(
-            !remoteStream
-            .getTracks()
-            .includes(track)
-          ){
+}
 
-            remoteStream.addTrack(
-              track
-            );
+});
 
-          }
+}
 
-        }
-      );
-
-    }
-
-  };
+};
 
 
-  /* =========================
-     ICE
-  ========================= */
+/* ICE */
 
-  peer.onicecandidate =
-  async function(event){
+peer.onicecandidate=
+async event=>{
 
-    if(event.candidate){
+if(event.candidate){
 
-      await kirim({
+await kirim({
 
-        type:"candidate",
+type:"candidate",
 
-        candidate:
-        event.candidate
+candidate:
+event.candidate
 
-      });
+});
 
-    }
+}
 
-  };
+};
 
 
-  /* =========================
-     STATUS WEBRTC
-  ========================= */
+/* STATUS */
 
-  peer.onconnectionstatechange =
-  function(){
+peer.onconnectionstatechange=
+()=>{
 
-    const state =
-    peer.connectionState;
+const state=
+peer.connectionState;
 
 
-    console.log(
-      "WebRTC:",
-      state
-    );
+if(state==="connected"){
 
+status.innerText=
+"🟢 PASANGAN TERHUBUNG";
 
-    if(
-      state === "connected"
-    ){
+}
 
-      status.innerText =
-      "🟢 PASANGAN TERHUBUNG";
+else if(
+state==="connecting"
+){
 
-    }
+status.innerText=
+"🟡 Menghubungkan kamera...";
 
+}
 
-    else if(
-      state === "connecting"
-    ){
+else if(
+state==="disconnected"
+){
 
-      status.innerText =
-      "🟡 Menghubungkan kamera...";
+status.innerText=
+"🟠 Koneksi terputus";
 
-    }
+}
 
+else if(
+state==="failed"
+){
 
-    else if(
-      state === "disconnected"
-    ){
+status.innerText=
+"🔴 WebRTC gagal";
 
-      status.innerText =
-      "🟠 Koneksi terputus sementara";
+}
 
-    }
-
-
-    else if(
-      state === "failed"
-    ){
-
-      status.innerText =
-      "🔴 WebRTC gagal terhubung";
-
-    }
-
-  };
+};
 
 }
 
 
 /* ==================================================
-   KIRIM SIGNAL
+   KIRIM
 ================================================== */
 
 async function kirim(data){
 
-  if(!channel){
+if(!channel)return;
 
-    console.log(
-      "Channel belum tersedia"
-    );
+try{
 
-    return;
+await channel.send({
 
-  }
+type:"broadcast",
 
+event:"signal",
 
-  try{
+payload:data
 
-    await channel.send({
+});
 
-      type:"broadcast",
+}catch(error){
 
-      event:"signal",
+console.error(error);
 
-      payload:data
-
-    });
-
-  }catch(error){
-
-    console.error(
-      "Gagal mengirim signal:",
-      error
-    );
-
-  }
+}
 
 }
 
 
 /* ==================================================
-   PROSES SIGNAL
+   SIGNAL
 ================================================== */
 
 async function prosesSignal(data){
 
-  try{
+try{
 
 
-    /* =========================
-       HOST TERIMA HELLO
-    ========================= */
+/* HOST */
 
-    if(
-      data.type === "hello" &&
-      role === "host"
-    ){
+if(
+data.type==="hello" &&
+role==="host"
+){
 
-      console.log(
-        "Pasangan masuk room"
-      );
+const offer=
+await peer.createOffer();
 
+await peer.setLocalDescription(
+offer
+);
 
-      status.innerText =
-      "🟡 Pasangan ditemukan...";
+await kirim({
 
+type:"offer",
 
-      const offer =
-      await peer.createOffer();
+sdp:
+peer.localDescription
 
+});
 
-      await peer.setLocalDescription(
-        offer
-      );
-
-
-      await kirim({
-
-        type:"offer",
-
-        sdp:
-        peer.localDescription
-
-      });
-
-    }
+}
 
 
-    /* =========================
-       GUEST TERIMA OFFER
-    ========================= */
+/* GUEST */
 
-    else if(
-      data.type === "offer" &&
-      role === "guest"
-    ){
+else if(
+data.type==="offer" &&
+role==="guest"
+){
 
-      console.log(
-        "Offer diterima"
-      );
+await peer.setRemoteDescription(
+data.sdp
+);
 
+const answer=
+await peer.createAnswer();
 
-      await peer.setRemoteDescription(
-        data.sdp
-      );
+await peer.setLocalDescription(
+answer
+);
 
+await kirim({
 
-      const answer =
-      await peer.createAnswer();
+type:"answer",
 
+sdp:
+peer.localDescription
 
-      await peer.setLocalDescription(
-        answer
-      );
+});
 
-
-      await kirim({
-
-        type:"answer",
-
-        sdp:
-        peer.localDescription
-
-      });
-
-    }
+}
 
 
-    /* =========================
-       HOST TERIMA ANSWER
-    ========================= */
+/* HOST ANSWER */
 
-    else if(
-      data.type === "answer" &&
-      role === "host"
-    ){
+else if(
+data.type==="answer" &&
+role==="host"
+){
 
-      console.log(
-        "Answer diterima"
-      );
+await peer.setRemoteDescription(
+data.sdp
+);
 
-
-      await peer.setRemoteDescription(
-        data.sdp
-      );
-
-    }
+}
 
 
-    /* =========================
-       ICE
-    ========================= */
+/* ICE */
 
-    else if(
-      data.type === "candidate"
-    ){
+else if(
+data.type==="candidate"
+){
 
-      try{
+try{
 
-        await peer.addIceCandidate(
-          data.candidate
-        );
+await peer.addIceCandidate(
+data.candidate
+);
 
-      }catch(error){
+}catch(e){}
 
-        console.log(
-          "ICE belum siap"
-        );
-
-      }
-
-    }
+}
 
 
-    /* =========================
-       FOTO
-    ========================= */
+/* FOTO DARI TEMAN */
 
-    else if(
-      data.type === "photo" &&
-      role === "guest"
-    ){
+else if(
+data.type==="photo"
+){
 
-      ambilFoto();
+ambilFoto();
 
-    }
+}
 
-  }catch(error){
+}catch(error){
 
-    console.error(
-      "Signal error:",
-      error
-    );
+console.error(
+"Signal:",
+error
+);
 
-  }
+}
 
 }
 
 
 /* ==================================================
-   FOTO BERSAMA
+   FOTO
 ================================================== */
 
-fotoBtn.onclick =
+fotoBtn.onclick=
 async function(){
 
-  if(role !== "host")
-  return;
+/*
+  Siapa pun boleh menekan.
+  Perintah dikirim ke HP satunya.
+*/
+
+await kirim({
+
+type:"photo"
+
+});
 
 
-  /*
-    Kirim perintah ke HP pasangan.
-  */
+/*
+  HP sendiri juga ikut.
+*/
 
-  await kirim({
-
-    type:"photo"
-
-  });
-
-
-  /*
-    Host ikut countdown.
-  */
-
-  ambilFoto();
+ambilFoto();
 
 };
 
@@ -1136,43 +1235,35 @@ async function(){
 
 async function ambilFoto(){
 
-  countdown.classList.remove(
-    "hidden"
-  );
+countdown.classList.remove(
+"hidden"
+);
 
 
-  for(
-    let i=3;
-    i>=1;
-    i--
-  ){
+for(
+let i=3;
+i>=1;
+i--
+){
 
-    countdown.innerText =
-    i;
+countdown.innerText=
+i;
 
+await tunggu(700);
 
-    await tunggu(
-      700
-    );
-
-  }
+}
 
 
-  countdown.innerText =
-  "📸";
+countdown.innerText=
+"📸";
 
+await tunggu(300);
 
-  await tunggu(
-    300
-  );
+countdown.classList.add(
+"hidden"
+);
 
-
-  countdown.classList.add(
-    "hidden"
-  );
-
-
-  buatFoto();
+buatFoto();
 
 }
 
@@ -1183,16 +1274,121 @@ async function ambilFoto(){
 
 function tunggu(ms){
 
-  return new Promise(
-    function(resolve){
+return new Promise(
+resolve=>
+setTimeout(
+resolve,
+ms
+)
+);
 
-      setTimeout(
-        resolve,
-        ms
-      );
+}
 
-    }
-  );
+
+/* ==================================================
+   EFEK
+================================================== */
+
+document
+.querySelectorAll(
+".effects button"
+)
+.forEach(
+button=>{
+
+button.onclick=
+()=>{
+
+currentEffect=
+button.dataset.fx;
+
+
+localVideo.className=
+currentEffect;
+
+
+remoteVideo.className=
+currentEffect;
+
+
+document
+.querySelectorAll(
+".effects button"
+)
+.forEach(
+b=>
+b.classList.remove(
+"active"
+)
+);
+
+
+button.classList.add(
+"active"
+);
+
+
+effectName.innerText=
+"Efek: "+
+button.innerText;
+
+};
+
+});
+
+
+/* ==================================================
+   AI PROMPT
+================================================== */
+
+document
+.getElementById("aiBtn")
+.onclick=
+function(){
+
+currentPrompt=
+aiPrompt.value.trim();
+
+
+if(!currentPrompt){
+
+aiPreview.innerText=
+"Masukkan prompt AI dulu.";
+
+return;
+
+}
+
+
+/*
+  Untuk sekarang prompt disimpan
+  sebagai konsep background.
+
+  Generator AI sungguhan harus
+  dipanggil dari backend agar
+  secret API tidak bocor.
+*/
+
+aiPreview.innerHTML=
+"🤖 Konsep AI aktif:<br><b>"+
+escapeHTML(currentPrompt)+
+"</b>";
+
+};
+
+
+/* ==================================================
+   AMANKAN TEKS PROMPT
+================================================== */
+
+function escapeHTML(text){
+
+return text
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
 
 }
 
@@ -1203,103 +1399,119 @@ function tunggu(ms){
 
 function buatFoto(){
 
-  /*
-    Ukuran hasil:
-    540 x 960
-    = rasio 9:16
-  */
+const W=540;
+const H=960;
 
-  const W = 540;
+hasil.width=W;
+hasil.height=H;
 
-  const H = 960;
-
-
-  hasil.width =
-  W;
-
-  hasil.height =
-  H;
+const ctx=
+hasil.getContext("2d");
 
 
-  const ctx =
-  hasil.getContext("2d");
+/*
+  Background hitam.
+*/
+
+ctx.fillStyle="#000";
+
+ctx.fillRect(
+0,
+0,
+W,
+H
+);
 
 
-  /* background */
+/*
+  Kamera kiri.
+*/
 
-  ctx.fillStyle =
-  "#000";
-
-  ctx.fillRect(
-    0,
-    0,
-    W,
-    H
-  );
-
-
-  /*
-    Kamera kiri
-  */
-
-  gambarVideo(
-    ctx,
-    localVideo,
-    0,
-    0,
-    W/2,
-    H
-  );
+gambarVideo(
+ctx,
+localVideo,
+0,
+0,
+W/2,
+H
+);
 
 
-  /*
-    Kamera kanan
-  */
+/*
+  Kamera kanan.
+*/
 
-  gambarVideo(
-    ctx,
-    remoteVideo,
-    W/2,
-    0,
-    W/2,
-    H
-  );
-
-
-  /*
-    Garis pemisah
-  */
-
-  ctx.fillStyle =
-  "#fff";
-
-  ctx.fillRect(
-    W/2-1,
-    0,
-    2,
-    H
-  );
+gambarVideo(
+ctx,
+remoteVideo,
+W/2,
+0,
+W/2,
+H
+);
 
 
-  hasil.classList.remove(
-    "hidden"
-  );
+/*
+  Garis tengah.
+*/
+
+ctx.fillStyle="#fff";
+
+ctx.fillRect(
+W/2-1,
+0,
+2,
+H
+);
 
 
-  /*
-    Download JPEG
-  */
+/*
+  Prompt AI ditambahkan sebagai
+  metadata visual sederhana.
+*/
 
-  download.href =
-  hasil.toDataURL(
-    "image/jpeg",
-    0.92
-  );
+if(currentPrompt){
+
+ctx.fillStyle=
+"rgba(0,0,0,.55)";
+
+ctx.fillRect(
+0,
+H-48,
+W,
+48
+);
+
+ctx.fillStyle="#fff";
+
+ctx.font=
+"11px Arial";
+
+ctx.textAlign="center";
+
+ctx.fillText(
+"AI: "+currentPrompt.slice(0,80),
+W/2,
+H-20
+);
+
+}
 
 
-  download.classList.remove(
-    "hidden"
-  );
+hasil.classList.remove(
+"hidden"
+);
+
+
+download.href=
+hasil.toDataURL(
+"image/jpeg",
+0.92
+);
+
+download.classList.remove(
+"hidden"
+);
 
 }
 
@@ -1309,115 +1521,118 @@ function buatFoto(){
 ================================================== */
 
 function gambarVideo(
-  ctx,
-  video,
-  x,
-  y,
-  w,
-  h
+ctx,
+video,
+x,
+y,
+w,
+h
 ){
 
-  /*
-    Kalau video belum siap.
-  */
+if(
+!video ||
+video.readyState<2 ||
+!video.videoWidth
+){
 
-  if(
-    !video ||
-    video.readyState < 2 ||
-    !video.videoWidth
-  ){
+ctx.fillStyle="#222";
 
-    ctx.fillStyle =
-    "#222";
+ctx.fillRect(
+x,
+y,
+w,
+h
+);
 
-    ctx.fillRect(
-      x,
-      y,
-      w,
-      h
-    );
+ctx.fillStyle="#aaa";
 
+ctx.font=
+"13px Arial";
 
-    ctx.fillStyle =
-    "#aaa";
+ctx.textAlign="center";
 
-    ctx.font =
-    "14px Arial";
+ctx.fillText(
+"Video belum siap",
+x+w/2,
+y+h/2
+);
 
-    ctx.textAlign =
-    "center";
+return;
 
-    ctx.fillText(
-      "Video belum siap",
-      x+w/2,
-      y+h/2
-    );
-
-    return;
-
-  }
+}
 
 
-  const vw =
-  video.videoWidth;
+const vw=
+video.videoWidth;
 
-  const vh =
-  video.videoHeight;
-
-
-  /*
-    FIT TANPA ZOOM/CROP.
-
-    Kamera dimasukkan seluruhnya
-    ke area foto.
-  */
-
-  const scale =
-  Math.min(
-    w/vw,
-    h/vh
-  );
+const vh=
+video.videoHeight;
 
 
-  const nw =
-  vw*scale;
+/*
+  COVER:
+  seperti kamera HP.
 
-  const nh =
-  vh*scale;
+  Tetap memenuhi kotak 9:16,
+  tidak tidur, tidak mengecil.
+*/
 
-
-  const dx =
-  x+(w-nw)/2;
-
-  const dy =
-  y+(h-nh)/2;
-
-
-  ctx.save();
+const scale=
+Math.max(
+w/vw,
+h/vh
+);
 
 
-  ctx.beginPath();
+const nw=
+vw*scale;
 
-  ctx.rect(
-    x,
-    y,
-    w,
-    h
-  );
-
-  ctx.clip();
+const nh=
+vh*scale;
 
 
-  ctx.drawImage(
-    video,
-    dx,
-    dy,
-    nw,
-    nh
-  );
+const dx=
+x+(w-nw)/2;
+
+const dy=
+y+(h-nh)/2;
 
 
-  ctx.restore();
+ctx.save();
+
+ctx.beginPath();
+
+ctx.rect(
+x,
+y,
+w,
+h
+);
+
+ctx.clip();
+
+
+/*
+  Tidak mirror.
+*/
+
+ctx.filter=
+getComputedStyle(video)
+.filter;
+
+
+ctx.drawImage(
+video,
+dx,
+dy,
+nw,
+nh
+);
+
+
+ctx.restore();
+
+ctx.filter="none";
 
 }
 

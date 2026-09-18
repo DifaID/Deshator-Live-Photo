@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mini LDR Studio V6</title>
+<title>Mini LDR Studio V7</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -11,40 +11,75 @@
 *{box-sizing:border-box}
 
 body{
-margin:0;background:#080808;color:#fff;
-font-family:Arial,sans-serif;text-align:center
+margin:0;
+background:#080808;
+color:#fff;
+font-family:Arial,sans-serif;
+text-align:center
 }
 
-main{max-width:900px;margin:auto;padding:10px}
-h1{font-size:22px;margin:7px 0}
-p{color:#bbb;margin:5px}
+main{
+max-width:900px;
+margin:auto;
+padding:10px
+}
+
+h1{
+font-size:22px;
+margin:7px 0
+}
+
+p{
+color:#bbb;
+margin:5px
+}
 
 button,input{
-border:0;border-radius:9px;
-padding:11px 13px;font-size:14px
+border:0;
+border-radius:9px;
+padding:11px 13px;
+font-size:14px
 }
 
 button{
-background:#e53935;color:#fff;
-font-weight:bold;margin:4px
+background:#e53935;
+color:#fff;
+font-weight:bold;
+margin:4px
 }
 
-button:active{transform:scale(.96)}
-input{text-align:center}
+button:active{
+transform:scale(.96)
+}
+
+input{
+text-align:center
+}
 
 #kodeInput{
-width:140px;text-transform:uppercase
+width:140px;
+text-transform:uppercase
 }
 
 #status{
-margin:9px;color:#79ff79;font-size:13px
+margin:9px;
+color:#79ff79;
+font-size:13px
 }
 
-#roomInfo{margin:8px;font-size:16px}
-.hidden{display:none!important}
+#roomInfo{
+margin:8px;
+font-size:16px
+}
+
+.hidden{
+display:none!important
+}
 
 
-/* ================= KAMERA 3:4 ================= */
+/* =========================
+   KAMERA 3:4
+========================= */
 
 .cameras{
 display:grid;
@@ -68,7 +103,7 @@ object-fit:cover;
 background:#000
 }
 
-/* Kamera depan seperti selfie HP */
+/* Kamera sendiri seperti selfie HP */
 #localVideo{
 transform:scaleX(-1)
 }
@@ -90,19 +125,27 @@ font-size:11px
 }
 
 
-/* ================= KONTROL ================= */
+/* =========================
+   KONTROL
+========================= */
 
-.controls{margin-top:8px}
+.controls{
+margin-top:8px
+}
 
 #fotoBtn{
 font-size:16px;
 padding:13px 22px
 }
 
-#copyRoom{background:#333}
+#copyRoom{
+background:#333
+}
 
 
-/* ================= EFEK ================= */
+/* =========================
+   EFEK
+========================= */
 
 .effects{
 display:flex;
@@ -118,14 +161,19 @@ background:#252525;
 font-size:12px
 }
 
-.effects button.active{background:#e53935}
+.effects button.active{
+background:#e53935
+}
 
 #effectName{
-font-size:12px;color:#aaa
+font-size:12px;
+color:#aaa
 }
 
 
-/* ================= AI ================= */
+/* =========================
+   AI
+========================= */
 
 .ai{
 background:#151515;
@@ -136,7 +184,8 @@ text-align:left
 }
 
 .ai h3{
-margin:2px 0 7px;font-size:15px
+margin:2px 0 7px;
+font-size:15px
 }
 
 #aiPrompt{
@@ -147,7 +196,9 @@ color:#fff;
 outline:none
 }
 
-#aiPrompt::placeholder{color:#777}
+#aiPrompt::placeholder{
+color:#777
+}
 
 #aiPreview{
 margin-top:7px;
@@ -157,29 +208,95 @@ line-height:1.4
 }
 
 
-/* ================= HASIL 1:1 ================= */
+/* =========================
+   GALERI FOTO
+========================= */
 
-#hasil{
+#galleryArea{
+margin-top:20px;
+text-align:left
+}
+
+.galleryTitle{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:8px
+}
+
+.galleryTitle h2{
+font-size:17px;
+margin:0
+}
+
+#photoCount{
+font-size:12px;
+color:#aaa
+}
+
+.gallery{
+display:flex;
+flex-direction:column;
+gap:12px
+}
+
+.photoCard{
+background:#151515;
+border-radius:12px;
+padding:10px;
+border:1px solid #292929
+}
+
+.photoNumber{
+font-size:12px;
+color:#aaa;
+margin-bottom:7px
+}
+
+.photoCard img{
 display:block;
 width:100%;
-max-width:900px;
-aspect-ratio:1/1;
-margin:12px auto;
-border-radius:10px
+max-width:500px;
+margin:auto;
+border-radius:7px
 }
 
-#download{
-display:inline-block;
-background:#16a34a;
-color:#fff;
-padding:12px 18px;
-border-radius:9px;
-text-decoration:none;
-font-weight:bold
+.photoActions{
+display:flex;
+justify-content:center;
+gap:5px;
+margin-top:7px
+}
+
+.deleteBtn{
+background:#b91c1c
+}
+
+.printBtn{
+background:#16a34a
+}
+
+#printAllBtn{
+width:100%;
+background:#fff;
+color:#111;
+font-size:15px;
+padding:13px
+}
+
+.emptyGallery{
+background:#111;
+border:1px dashed #444;
+border-radius:10px;
+padding:20px;
+color:#777;
+font-size:13px
 }
 
 
-/* ================= COUNTDOWN ================= */
+/* =========================
+   COUNTDOWN
+========================= */
 
 #countdown{
 position:fixed;
@@ -194,7 +311,9 @@ font-weight:bold
 }
 
 
-/* ================= FILTER ================= */
+/* =========================
+   FILTER
+========================= */
 
 .fx-normal{filter:none}
 .fx-vivid{filter:saturate(1.5) contrast(1.08)}
@@ -211,10 +330,97 @@ font-weight:bold
 .fx-moon{filter:grayscale(.3) brightness(.9) contrast(1.25)}
 .fx-dramatic{filter:contrast(1.45) saturate(1.15) brightness(.88)}
 
+
+/* =========================
+   MOBILE
+========================= */
+
 @media(max-width:500px){
-main{padding:7px}
-h1{font-size:19px}
-button{font-size:12px;padding:10px 11px}
+
+main{
+padding:7px
+}
+
+h1{
+font-size:19px
+}
+
+button{
+font-size:12px;
+padding:10px 11px
+}
+
+.photoCard img{
+width:100%
+}
+
+}
+
+
+/* =========================
+   PRINT
+========================= */
+
+@media print{
+
+body{
+background:#fff;
+color:#000
+}
+
+body>*{
+display:none!important
+}
+
+#printSheet{
+display:block!important;
+width:100%;
+padding:10mm
+}
+
+.printPaper{
+width:100%;
+max-width:180mm;
+margin:0 auto 15mm;
+background:#fff;
+padding:8mm 8mm 15mm;
+box-shadow:0 0 5px #aaa;
+page-break-after:always
+}
+
+.printPhoto{
+display:block;
+width:100%;
+aspect-ratio:1/1;
+object-fit:contain;
+background:#000
+}
+
+.printCaption{
+font-family:Arial,sans-serif;
+text-align:center;
+color:#222;
+font-size:16px;
+font-weight:bold;
+margin-top:8mm
+}
+
+.printSub{
+text-align:center;
+color:#777;
+font-size:10px;
+margin-top:3mm
+}
+
+#printSheet{
+font-family:Arial,sans-serif
+}
+
+@page{
+size:A4;
+margin:10mm
+}
+
 }
 </style>
 </head>
@@ -224,14 +430,19 @@ button{font-size:12px;padding:10px 11px}
 <main>
 
 <h1>📸 Mini LDR Studio</h1>
+
 <p>Studio foto jarak jauh • 2 HP</p>
 
 
-<!-- ROOM -->
+<!-- =========================
+ROOM
+========================= -->
 
 <div id="setup">
 
-<button id="buatBtn">BUAT ROOM</button>
+<button id="buatBtn">
+BUAT ROOM
+</button>
 
 <br>
 
@@ -241,24 +452,36 @@ maxlength="6"
 placeholder="KODE ROOM"
 >
 
-<button id="gabungBtn">GABUNG</button>
+<button id="gabungBtn">
+GABUNG
+</button>
 
 </div>
 
+
 <div id="roomInfo"></div>
 
-<button id="copyRoom" class="hidden">
+<button
+id="copyRoom"
+class="hidden"
+>
 SALIN KODE
 </button>
+
 
 <div id="status">
 Belum terhubung
 </div>
 
 
-<!-- KAMERA -->
+<!-- =========================
+KAMERA
+========================= -->
 
-<div id="cameras" class="cameras hidden">
+<div
+id="cameras"
+class="cameras hidden"
+>
 
 <div class="camera">
 
@@ -269,7 +492,9 @@ playsinline
 muted
 ></video>
 
-<div class="label">KAMU</div>
+<div class="label">
+KAMU
+</div>
 
 </div>
 
@@ -282,16 +507,23 @@ autoplay
 playsinline
 ></video>
 
-<div class="label">PASANGAN</div>
-
+<div class="label">
+PASANGAN
 </div>
 
 </div>
 
+</div>
 
-<!-- EFEK -->
 
-<div id="effectArea" class="hidden">
+<!-- =========================
+EFEK
+========================= -->
+
+<div
+id="effectArea"
+class="hidden"
+>
 
 <div id="effectName">
 Efek: Normal
@@ -315,25 +547,38 @@ Efek: Normal
 <button data-fx="fx-dramatic">Dramatic</button>
 
 </div>
+
 </div>
 
 
-<!-- FOTO -->
+<!-- =========================
+FOTO
+========================= -->
 
 <div class="controls">
 
-<button id="fotoBtn" class="hidden">
+<button
+id="fotoBtn"
+class="hidden"
+>
 📸 FOTO BERSAMA
 </button>
 
 </div>
 
 
-<!-- AI -->
+<!-- =========================
+AI
+========================= -->
 
-<div id="aiArea" class="ai hidden">
+<div
+id="aiArea"
+class="ai hidden"
+>
 
-<h3>🤖 Prompt AI Background</h3>
+<h3>
+🤖 Prompt AI Background
+</h3>
 
 <input
 id="aiPrompt"
@@ -351,33 +596,73 @@ Prompt belum digunakan.
 </div>
 
 
-<!-- HASIL -->
+<!-- =========================
+GALERI
+========================= -->
 
-<canvas id="hasil" class="hidden"></canvas>
-
-<a
-id="download"
+<div
+id="galleryArea"
 class="hidden"
-download="mini-ldr-studio-1x1.jpg"
 >
-💾 SIMPAN FOTO
-</a>
+
+<div class="galleryTitle">
+
+<h2>
+🖼️ Hasil Foto
+</h2>
+
+<div id="photoCount">
+0 / 5
+</div>
+
+</div>
+
+
+<button
+id="printAllBtn"
+>
+🖨️ CETAK FOTO
+</button>
+
+
+<div
+id="gallery"
+class="gallery"
+>
+</div>
+
+</div>
 
 </main>
 
 
-<!-- COUNTDOWN -->
+<!-- =========================
+COUNTDOWN
+========================= -->
 
-<div id="countdown" class="hidden">
+<div
+id="countdown"
+class="hidden"
+>
 3
 </div>
 
 
+<!-- =========================
+PRINT SHEET
+========================= -->
+
+<div
+id="printSheet"
+style="display:none"
+></div>
+
+
 <script>
 
-/* =========================
-   SUPABASE
-========================= */
+/* ==================================================
+SUPABASE
+================================================== */
 
 const SUPABASE_URL=
 "https://fdiurlgmbhzzoxtcnpmr.supabase.co";
@@ -392,53 +677,99 @@ SUPABASE_KEY
 );
 
 
-/* =========================
-   VARIABLE
-========================= */
+/* ==================================================
+VARIABLE
+================================================== */
 
 let role=null;
 let roomCode=null;
 let channel=null;
+
 let localStream=null;
 let peer=null;
 let remoteStream=null;
 
 let currentEffect="fx-normal";
 let currentPrompt="";
+
 let capturing=false;
 let pendingCandidates=[];
 
 
-/* =========================
-   ELEMENT
-========================= */
+/*
+ Maksimal 5 foto.
+*/
 
-const setup=document.getElementById("setup");
-const roomInfo=document.getElementById("roomInfo");
-const status=document.getElementById("status");
-const cameras=document.getElementById("cameras");
+const MAX_PHOTOS=5;
 
-const localVideo=document.getElementById("localVideo");
-const remoteVideo=document.getElementById("remoteVideo");
-
-const fotoBtn=document.getElementById("fotoBtn");
-const copyRoom=document.getElementById("copyRoom");
-
-const countdown=document.getElementById("countdown");
-const hasil=document.getElementById("hasil");
-const download=document.getElementById("download");
-
-const effectArea=document.getElementById("effectArea");
-const aiArea=document.getElementById("aiArea");
-
-const effectName=document.getElementById("effectName");
-const aiPrompt=document.getElementById("aiPrompt");
-const aiPreview=document.getElementById("aiPreview");
+let photos=[];
 
 
-/* =========================
-   KODE ROOM
-========================= */
+/* ==================================================
+ELEMENT
+================================================== */
+
+const setup=
+document.getElementById("setup");
+
+const roomInfo=
+document.getElementById("roomInfo");
+
+const status=
+document.getElementById("status");
+
+const cameras=
+document.getElementById("cameras");
+
+const localVideo=
+document.getElementById("localVideo");
+
+const remoteVideo=
+document.getElementById("remoteVideo");
+
+const fotoBtn=
+document.getElementById("fotoBtn");
+
+const copyRoom=
+document.getElementById("copyRoom");
+
+const countdown=
+document.getElementById("countdown");
+
+const effectArea=
+document.getElementById("effectArea");
+
+const aiArea=
+document.getElementById("aiArea");
+
+const effectName=
+document.getElementById("effectName");
+
+const aiPrompt=
+document.getElementById("aiPrompt");
+
+const aiPreview=
+document.getElementById("aiPreview");
+
+const galleryArea=
+document.getElementById("galleryArea");
+
+const gallery=
+document.getElementById("gallery");
+
+const photoCount=
+document.getElementById("photoCount");
+
+const printAllBtn=
+document.getElementById("printAllBtn");
+
+const printSheet=
+document.getElementById("printSheet");
+
+
+/* ==================================================
+KODE ROOM
+================================================== */
 
 function buatKode(){
 
@@ -462,37 +793,47 @@ return kode;
 }
 
 
-/* =========================
-   BUAT ROOM
-========================= */
+/* ==================================================
+BUAT ROOM
+================================================== */
 
-document.getElementById("buatBtn").onclick=
+document
+.getElementById("buatBtn")
+.onclick=
 async function(){
 
 role="host";
-roomCode=buatKode();
+
+roomCode=
+buatKode();
 
 await masukRoom();
 
 };
 
 
-/* =========================
-   GABUNG
-========================= */
+/* ==================================================
+GABUNG
+================================================== */
 
-document.getElementById("gabungBtn").onclick=
+document
+.getElementById("gabungBtn")
+.onclick=
 async function(){
 
 const kode=
-document.getElementById("kodeInput")
+document
+.getElementById("kodeInput")
 .value
 .trim()
 .toUpperCase();
 
 if(kode.length!==6){
 
-alert("Kode room harus 6 karakter.");
+alert(
+"Kode room harus 6 karakter."
+);
+
 return;
 
 }
@@ -505,16 +846,18 @@ await masukRoom();
 };
 
 
-/* =========================
-   MASUK ROOM
-========================= */
+/* ==================================================
+MASUK ROOM
+================================================== */
 
 async function masukRoom(){
 
 setup.classList.add("hidden");
 
 roomInfo.innerHTML=
-"ROOM: <b>"+roomCode+"</b>";
+"ROOM: <b>"+
+roomCode+
+"</b>";
 
 copyRoom.classList.remove("hidden");
 
@@ -552,11 +895,6 @@ audio:false
 });
 
 
-/*
- Kamera depan HP.
- Preview sendiri mirror.
-*/
-
 localVideo.srcObject=
 localStream;
 
@@ -581,16 +919,14 @@ return;
 
 
 cameras.classList.remove("hidden");
+
 effectArea.classList.remove("hidden");
+
 aiArea.classList.remove("hidden");
 
 
-/* WEBRTC */
-
 buatPeer();
 
-
-/* SUPABASE */
 
 channel=
 supabaseClient.channel(
@@ -663,9 +999,9 @@ status.innerText=
 }
 
 
-/* =========================
-   COPY ROOM
-========================= */
+/* ==================================================
+COPY ROOM
+================================================== */
 
 copyRoom.onclick=
 async function(){
@@ -677,7 +1013,8 @@ roomCode
 );
 
 alert(
-"Kode room:\n"+roomCode
+"Kode room:\n"+
+roomCode
 );
 
 }catch(e){
@@ -692,9 +1029,9 @@ roomCode
 };
 
 
-/* =========================
-   WEBRTC
-========================= */
+/* ==================================================
+WEBRTC
+================================================== */
 
 function buatPeer(){
 
@@ -830,9 +1167,9 @@ status.innerText=
 }
 
 
-/* =========================
-   KIRIM
-========================= */
+/* ==================================================
+KIRIM
+================================================== */
 
 async function kirim(data){
 
@@ -857,9 +1194,9 @@ console.error(error);
 }
 
 
-/* =========================
-   SIGNAL
-========================= */
+/* ==================================================
+SIGNAL
+================================================== */
 
 async function prosesSignal(data){
 
@@ -901,8 +1238,6 @@ await peer.setRemoteDescription(
 data.sdp
 );
 
-
-/* ICE yang datang lebih dulu */
 
 for(
 const candidate of pendingCandidates
@@ -1006,7 +1341,7 @@ data.candidate
 }
 
 
-/* FOTO TEMAN */
+/* FOTO */
 
 else if(
 data.type==="photo"
@@ -1036,12 +1371,30 @@ error
 }
 
 
-/* =========================
-   FOTO
-========================= */
+/* ==================================================
+FOTO
+================================================== */
 
 fotoBtn.onclick=
 async function(){
+
+/*
+ Jangan foto kalau
+ sudah 5.
+*/
+
+if(
+photos.length>=MAX_PHOTOS
+){
+
+alert(
+"📸 Foto sudah penuh!\n\nHapus dulu salah satu foto sebelum memotret lagi."
+);
+
+return;
+
+}
+
 
 if(capturing)return;
 
@@ -1064,15 +1417,33 @@ capturing=false;
 };
 
 
-/* =========================
-   COUNTDOWN
-========================= */
+/* ==================================================
+COUNTDOWN
+================================================== */
 
 async function ambilFoto(){
+
+/*
+ Cek lagi sebelum countdown.
+*/
+
+if(
+photos.length>=MAX_PHOTOS
+){
+
+alert(
+"📸 Slot foto sudah penuh.\nHapus salah satu foto dulu."
+);
+
+return;
+
+}
+
 
 countdown.classList.remove(
 "hidden"
 );
+
 
 for(
 let i=3;
@@ -1086,6 +1457,7 @@ await tunggu(700);
 
 }
 
+
 countdown.innerText="📸";
 
 await tunggu(300);
@@ -1094,14 +1466,15 @@ countdown.classList.add(
 "hidden"
 );
 
+
 buatFoto();
 
 }
 
 
-/* =========================
-   TIMER
-========================= */
+/* ==================================================
+TIMER
+================================================== */
 
 function tunggu(ms){
 
@@ -1113,9 +1486,9 @@ setTimeout(resolve,ms)
 }
 
 
-/* =========================
-   EFEK
-========================= */
+/* ==================================================
+EFEK
+================================================== */
 
 document
 .querySelectorAll(".effects button")
@@ -1125,7 +1498,6 @@ button.onclick=()=>{
 
 currentEffect=
 button.dataset.fx;
-
 
 localVideo.className=
 currentEffect;
@@ -1151,12 +1523,14 @@ button.innerText;
 });
 
 
-/* =========================
-   AI PROMPT
-========================= */
+/* ==================================================
+AI PROMPT
+================================================== */
 
-document.getElementById("aiBtn")
-.onclick=function(){
+document
+.getElementById("aiBtn")
+.onclick=
+function(){
 
 currentPrompt=
 aiPrompt.value.trim();
@@ -1178,9 +1552,9 @@ escapeHTML(currentPrompt)+
 };
 
 
-/* =========================
-   ESCAPE HTML
-========================= */
+/* ==================================================
+ESCAPE
+================================================== */
 
 function escapeHTML(text){
 
@@ -1194,21 +1568,41 @@ return text
 }
 
 
-/* =========================
-   BUAT FOTO
-   FINAL 1:1
-========================= */
+/* ==================================================
+BUAT FOTO
+================================================== */
 
 function buatFoto(){
+
+/*
+ Kalau sudah penuh,
+ jangan tambah foto.
+*/
+
+if(
+photos.length>=MAX_PHOTOS
+){
+
+alert(
+"📸 Maksimal 5 foto.\nHapus salah satu foto dulu."
+);
+
+return;
+
+}
+
 
 const W=900;
 const H=900;
 
-hasil.width=W;
-hasil.height=H;
+const canvas=
+document.createElement("canvas");
+
+canvas.width=W;
+canvas.height=H;
 
 const ctx=
-hasil.getContext("2d");
+canvas.getContext("2d");
 
 
 /* Background */
@@ -1222,8 +1616,6 @@ ctx.fillRect(
 
 /*
  Dua foto 3:4.
- Masing-masing:
- 450 x 600
 */
 
 const photoW=
@@ -1232,14 +1624,11 @@ W/2;
 const photoH=
 600;
 
-
-/* Tengah vertikal */
-
 const photoY=
 (H-photoH)/2;
 
 
-/* FOTO KIRI */
+/* KIRI */
 
 gambarVideo(
 ctx,
@@ -1251,7 +1640,7 @@ photoH
 );
 
 
-/* FOTO KANAN */
+/* KANAN */
 
 gambarVideo(
 ctx,
@@ -1263,7 +1652,7 @@ photoH
 );
 
 
-/* Garis tengah */
+/* Garis */
 
 ctx.fillStyle="#fff";
 
@@ -1275,7 +1664,7 @@ photoH
 );
 
 
-/* Prompt */
+/* AI */
 
 if(currentPrompt){
 
@@ -1290,7 +1679,9 @@ W,
 );
 
 ctx.fillStyle="#fff";
+
 ctx.font="11px Arial";
+
 ctx.textAlign="center";
 
 ctx.fillText(
@@ -1303,28 +1694,37 @@ H-13
 }
 
 
-/* Tampilkan */
+/*
+ Simpan hasil sebagai data URL.
+*/
 
-hasil.classList.remove(
-"hidden"
-);
-
-download.href=
-hasil.toDataURL(
+const dataURL=
+canvas.toDataURL(
 "image/jpeg",
 0.92
 );
 
-download.classList.remove(
-"hidden"
-);
+
+/*
+ Foto baru masuk
+ paling atas.
+*/
+
+photos.unshift(dataURL);
+
+
+/*
+ Render galeri.
+*/
+
+renderGallery();
 
 }
 
 
-/* =========================
-   GAMBAR VIDEO
-========================= */
+/* ==================================================
+GAMBAR VIDEO
+================================================== */
 
 function gambarVideo(
 ctx,
@@ -1348,7 +1748,9 @@ x,y,w,h
 );
 
 ctx.fillStyle="#aaa";
+
 ctx.font="13px Arial";
+
 ctx.textAlign="center";
 
 ctx.fillText(
@@ -1368,12 +1770,6 @@ video.videoWidth;
 const vh=
 video.videoHeight;
 
-
-/*
- Crop 3:4.
- Kiri dan kanan memakai
- perhitungan yang sama.
-*/
 
 const scale=
 Math.max(
@@ -1405,14 +1801,13 @@ x,y,w,h
 ctx.clip();
 
 
-/* Filter ikut masuk hasil */
-
 ctx.filter=
 getComputedStyle(video).filter;
 
 
 /*
- Hasil foto tidak mirror.
+ Foto hasil tetap normal.
+ Tidak mirror.
 */
 
 ctx.drawImage(
@@ -1423,11 +1818,262 @@ nw,
 nh
 );
 
+
 ctx.restore();
 
 ctx.filter="none";
 
 }
+
+
+/* ==================================================
+RENDER GALERI
+================================================== */
+
+function renderGallery(){
+
+gallery.innerHTML="";
+
+
+photoCount.innerText=
+photos.length+
+" / "+
+MAX_PHOTOS;
+
+
+if(photos.length===0){
+
+gallery.innerHTML=
+'<div class="emptyGallery">'+
+'Belum ada foto.<br>'+
+'Foto bersama akan muncul di sini.'+
+'</div>';
+
+galleryArea.classList.remove(
+"hidden"
+);
+
+return;
+
+}
+
+
+galleryArea.classList.remove(
+"hidden"
+);
+
+
+/*
+ Foto terbaru di atas.
+*/
+
+photos.forEach(
+(dataURL,index)=>{
+
+const card=
+document.createElement("div");
+
+card.className=
+"photoCard";
+
+
+const number=
+document.createElement("div");
+
+number.className=
+"photoNumber";
+
+number.innerText=
+"Foto #"+
+(index+1);
+
+
+const img=
+document.createElement("img");
+
+img.src=dataURL;
+
+
+const actions=
+document.createElement("div");
+
+actions.className=
+"photoActions";
+
+
+const deleteBtn=
+document.createElement("button");
+
+deleteBtn.className=
+"deleteBtn";
+
+deleteBtn.innerText=
+"🗑️ HAPUS";
+
+
+deleteBtn.onclick=
+function(){
+
+const yakin=
+confirm(
+"Hapus foto ini?"
+);
+
+if(!yakin)return;
+
+photos.splice(
+index,
+1
+);
+
+renderGallery();
+
+};
+
+
+const printBtn=
+document.createElement("button");
+
+printBtn.className=
+"printBtn";
+
+printBtn.innerText=
+"🖨️ CETAK";
+
+
+printBtn.onclick=
+function(){
+
+printSingle(
+dataURL,
+index+1
+);
+
+};
+
+
+actions.appendChild(
+deleteBtn
+);
+
+actions.appendChild(
+printBtn
+);
+
+
+card.appendChild(
+number
+);
+
+card.appendChild(
+img
+);
+
+card.appendChild(
+actions
+);
+
+
+gallery.appendChild(
+card
+);
+
+});
+
+}
+
+
+/* ==================================================
+CETAK SATU FOTO
+================================================== */
+
+function printSingle(
+dataURL,
+number
+){
+
+printSheet.innerHTML=
+`
+<div class="printPaper">
+
+<img
+class="printPhoto"
+src="${dataURL}"
+>
+
+<div class="printCaption">
+Mini LDR Studio
+</div>
+
+<div class="printSub">
+Foto #${number}
+</div>
+
+</div>
+`;
+
+
+window.print();
+
+}
+
+
+/* ==================================================
+CETAK SEMUA
+================================================== */
+
+printAllBtn.onclick=
+function(){
+
+if(
+photos.length===0
+){
+
+alert(
+"Belum ada foto untuk dicetak."
+);
+
+return;
+
+}
+
+
+let html="";
+
+
+photos.forEach(
+(dataURL,index)=>{
+
+html+=
+`
+<div class="printPaper">
+
+<img
+class="printPhoto"
+src="${dataURL}"
+>
+
+<div class="printCaption">
+Mini LDR Studio
+</div>
+
+<div class="printSub">
+Foto #${index+1}
+</div>
+
+</div>
+`;
+
+});
+
+
+printSheet.innerHTML=
+html;
+
+
+window.print();
+
+};
 
 </script>
 

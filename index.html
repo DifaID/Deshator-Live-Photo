@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini LDR Studio - Photobooth Edition</title>
+  <title>Mini LDR Studio - Synchronized Edition</title>
   
   <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,11 +23,14 @@
     #roomInfo{ margin:8px; font-size:16px }
     .hidden{ display:none!important }
 
-    /* ========================= KAMERA 3:4 ========================= */
+    /* ========================= KAMERA DISPLAY ========================= */
     .cameras{ display:grid; grid-template-columns:1fr 1fr; gap:5px }
     .camera{ position:relative; width:100%; aspect-ratio:3/4; background:#000; overflow:hidden; border-radius:10px }
     .camera video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
-    #localVideo{ transform:scaleX(-1) } /* Mirror untuk kamera lokal agar terasa seperti cermin */
+    
+    /* Mirroring diatur dinamis via class JavaScript */
+    .mirror{ transform: scaleX(-1); }
+
     .label{ position:absolute; top:7px; left:7px; z-index:5; background:#000b; padding:5px 8px; border-radius:6px; font-size:11px }
 
     /* ========================= KONTROL ========================= */
@@ -73,7 +76,7 @@
     .fx-vintage{filter:sepia(.45) contrast(1.05) saturate(.75)}
     .fx-bw{filter:grayscale(1) contrast(1.15)}
 
-    /* ========================= PRINT PHOTOBOOTH STRIP ========================= */
+    /* ========================= PRINT STRIP ========================= */
     #printSheet { display: none; }
     @media print{
       body{ background:#fff; color:#000 }
@@ -88,13 +91,13 @@
 
 <main>
   <h1>📸 Mini LDR Studio</h1>
-  <p>Studio foto jarak jauh • Photobooth Edition</p>
+  <p>Studio foto jarak jauh • Synchronized Edition</p>
 
   <div id="setup">
-    <button id="buatBtn">BUAT ROOM</button>
+    <button id="buatBtn">BUAT ROOM (HOST)</button>
     <div style="margin: 10px 0;">
       <input id="kodeInput" maxlength="6" placeholder="KODE ROOM">
-      <button id="gabungBtn">GABUNG</button>
+      <button id="gabungBtn">GABUNG (GUEST)</button>
     </div>
   </div>
 
@@ -102,15 +105,15 @@
   <button id="copyRoom" class="hidden">📋 SALIN KODE</button>
   <div id="status">Belum terhubung</div>
 
-  <!-- KAMERA DISPLAY -->
+  <!-- KAMERA DISPLAY (Sisi Kiri = Host, Sisi Kanan = Guest) -->
   <div id="cameras" class="cameras hidden">
     <div class="camera">
-      <div class="label">KAMU</div>
-      <video id="localVideo" autoplay playsinline muted></video>
+      <div class="label" id="labelLeft">HOST</div>
+      <video id="videoLeft" autoplay playsinline></video>
     </div>
     <div class="camera">
-      <div class="label">PASANGAN</div>
-      <video id="remoteVideo" autoplay playsinline></video>
+      <div class="label" id="labelRight">GUEST</div>
+      <video id="videoRight" autoplay playsinline></video>
     </div>
   </div>
 
@@ -162,7 +165,7 @@ const SUPABASE_KEY = "sb_publishable_RVQ0mdl1PO17U_NanI-bGA_ZpoE4Zii";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ================================================== VARIABLE ================================================== */
-let role = null;
+let role = null; // "host" atau "guest"
 let roomCode = null;
 let channel = null;
 let localStream = null;
@@ -180,8 +183,11 @@ const setup = document.getElementById("setup");
 const roomInfo = document.getElementById("roomInfo");
 const status = document.getElementById("status");
 const cameras = document.getElementById("cameras");
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
+
+const videoLeft = document.getElementById("videoLeft");
+const videoRight = document.getElementById("videoRight");
+const labelLeft = document.getElementById("labelLeft");
+const labelRight = document.getElementById("labelRight");
 
 const fotoBtn = document.getElementById("fotoBtn");
 const copyRoom = document.getElementById("copyRoom");
@@ -222,7 +228,7 @@ document.getElementById("gabungBtn").onclick = async function(){
 /* ================================================== MASUK ROOM ================================================== */
 async function masukRoom(){
   setup.classList.add("hidden");
-  roomInfo.innerHTML = "ROOM: <b>" + roomCode + "</b>";
+  roomInfo.innerHTML = "ROOM: <b>" + roomCode + "</b> (" + role.toUpperCase() + ")";
   copyRoom.classList.remove("hidden");
   status.innerText = "Meminta izin kamera...";
 
@@ -231,12 +237,36 @@ async function masukRoom(){
       video: { facingMode: { ideal: "user" }, width: { ideal: 1080 }, height: { ideal: 1440 }, aspectRatio: { ideal: 3/4 } },
       audio: false
     });
-    localVideo.srcObject = localStream;
   }catch(error){
     console.error(error);
     status.innerText = "❌ Kamera gagal.";
-    alert("Izin kamera diperlukan. Pastikan website memakai HTTPS.");
+    alert("Izin kamera diperlukan. Pastikan memakai HTTPS.");
     return;
+  }
+
+  /*
+    SINKRONISASI VIEWPORT VIEW (HP 1 & HP 2 SAMA PRESISI)
+    - Sisi Kiri = HOST
+    - Sisi Kanan = GUEST
+  */
+  remoteStream = new MediaStream();
+
+  if (role === "host") {
+    videoLeft.srcObject = localStream;
+    videoLeft.classList.add("mirror"); // Mirror untuk cermin diri sendiri
+    labelLeft.innerText = "KAMU (HOST)";
+
+    videoRight.srcObject = remoteStream;
+    videoRight.classList.remove("mirror");
+    labelRight.innerText = "PASANGAN (GUEST)";
+  } else {
+    videoLeft.srcObject = remoteStream;
+    videoLeft.classList.remove("mirror");
+    labelLeft.innerText = "PASANGAN (HOST)";
+
+    videoRight.srcObject = localStream;
+    videoRight.classList.add("mirror"); // Mirror untuk cermin diri sendiri
+    labelRight.innerText = "KAMU (GUEST)";
   }
 
   cameras.classList.remove("hidden");
@@ -249,7 +279,7 @@ async function masukRoom(){
   channel.on("broadcast", { event: "signal" }, async (msg) => await prosesSignal(msg.payload));
   channel.subscribe(async (state) => {
     if(state === "SUBSCRIBED"){
-      status.innerText = "🟢 Room terhubung. Menunggu pasangan...";
+      status.innerText = "🟢 Terhubung ke Room. Menunggu pasangan...";
       await kirim({ type: "hello" });
       fotoBtn.classList.remove("hidden");
     }
@@ -264,8 +294,6 @@ copyRoom.onclick = async () => {
 /* ================================================== WEBRTC ================================================== */
 function buatPeer(){
   peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-  remoteStream = new MediaStream();
-  remoteVideo.srcObject = remoteStream;
 
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
   peer.ontrack = event => {
@@ -311,10 +339,10 @@ async function prosesSignal(data){
   }catch(e){}
 }
 
-/* ================================================== FOTO ================================================== */
+/* ================================================== AMBIL FOTO ================================================== */
 fotoBtn.onclick = async function(){
   if(photoFrames.length >= MAX_PHOTOS){
-    alert("📸 Photobooth sudah penuh! Klik Reset jika ingin mengulang.");
+    alert("📸 Photobooth sudah penuh! Klik Reset untuk mengulang.");
     return;
   }
   if(capturing) return;
@@ -339,8 +367,8 @@ function tunggu(ms){ return new Promise(r => setTimeout(r, ms)); }
 document.querySelectorAll(".effects button").forEach(btn => {
   btn.onclick = () => {
     currentEffect = btn.dataset.fx;
-    localVideo.className = currentEffect;
-    remoteVideo.className = currentEffect;
+    videoLeft.className = "camera " + currentEffect + (videoLeft.classList.contains("mirror") ? " mirror" : "");
+    videoRight.className = "camera " + currentEffect + (videoRight.classList.contains("mirror") ? " mirror" : "");
     document.querySelectorAll(".effects button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     effectName.innerText = "Efek: " + btn.innerText;
@@ -354,7 +382,7 @@ document.getElementById("aiBtn").onclick = function(){
 
 function escapeHTML(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ================================================== HELPER CROP UNTUK MENCEGAH GEPENG ================================================== */
+/* ================================================== HELPER CROP ANTI-GEPENG ================================================== */
 function drawCoverImage(ctx, img, x, y, w, h, isMirrored = false) {
   const imgW = img.videoWidth || img.width;
   const imgH = img.videoHeight || img.height;
@@ -397,28 +425,19 @@ function simpanFrame(){
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
   const photoW = W / 2, photoH = H;
 
-  // Terapkan Filter Warna Aktif
-  ctx.filter = getComputedStyle(localVideo).filter;
+  // Filter warna aktif
+  ctx.filter = getComputedStyle(videoLeft).filter;
 
-  /* SINKRONISASI MIRRORING DAN POSISI (HOST & GUEST SAMA PERSIS) */
-  let leftVideo, rightVideo;
-  let leftMirror, rightMirror;
+  /*
+    SINKRONISASI KANVAS FOTO:
+    - Sisi Kiri: Video dari elemen videoLeft (selalu Host)
+    - Sisi Kanan: Video dari elemen videoRight (selalu Guest)
+  */
+  const leftIsMirrored = videoLeft.classList.contains("mirror");
+  const rightIsMirrored = videoRight.classList.contains("mirror");
 
-  if (role === "host") {
-    leftVideo = localVideo;
-    leftMirror = true; // Kamera sendiri selalu di-mirror agar presisi seperti cermin
-    rightVideo = remoteVideo;
-    rightMirror = false;
-  } else {
-    leftVideo = remoteVideo;
-    leftMirror = false;
-    rightVideo = localVideo;
-    rightMirror = true; // Kamera sendiri di-mirror
-  }
-
-  // Draw Sisi Kiri & Sisi Kanan dengan Pemotongan Rasio Otomatis (Anti-Gepeng)
-  drawCoverImage(ctx, leftVideo, 0, 0, photoW, photoH, leftMirror);
-  drawCoverImage(ctx, rightVideo, photoW, 0, photoW, photoH, rightMirror);
+  drawCoverImage(ctx, videoLeft, 0, 0, photoW, photoH, leftIsMirrored);
+  drawCoverImage(ctx, videoRight, photoW, 0, photoW, photoH, rightIsMirrored);
 
   ctx.filter = "none";
 
@@ -450,7 +469,7 @@ function renderPhotoboothStrip(){
   stripCanvas.width = stripW; stripCanvas.height = stripH;
   const ctx = stripCanvas.getContext("2d");
 
-  /* Background Kertas Photobooth White */
+  /* Background Kertas Photobooth */
   ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, stripW, stripH);
 
   photoFrames.forEach((frame, idx) => {
